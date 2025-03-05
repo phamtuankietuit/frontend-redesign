@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { fData } from 'src/utils/format-number';
+import { toastMessage } from 'src/utils/constant';
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
@@ -21,23 +22,23 @@ import { useMockedUser } from 'src/auth/hooks';
 // ----------------------------------------------------------------------
 
 export const UpdateUserSchema = zod.object({
-  displayName: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+  displayName: zod.string().min(1, { message: toastMessage.error.empty }),
   email: zod
     .string()
-    .min(1, { message: 'Không được bỏ trống!' })
-    .email({ message: 'Email không hợp lệ!' }),
+    .min(1, { message: toastMessage.error.empty })
+    .email({ message: toastMessage.error.invalidEmail }),
   photoURL: schemaHelper.file({
-    message: { required_error: 'Không được bỏ trống!' },
+    message: { required_error: toastMessage.error.empty },
   }),
   phoneNumber: schemaHelper.phoneNumber({ isValidPhoneNumber }),
   country: schemaHelper.objectOrNull({
-    message: { required_error: 'Không được bỏ trống!' },
+    message: { required_error: toastMessage.error.empty },
   }),
-  address: zod.string().min(1, { message: 'Không được bỏ trống!' }),
-  state: zod.string().min(1, { message: 'Không được bỏ trống!' }),
-  city: zod.string().min(1, { message: 'Không được bỏ trống!' }),
-  zipCode: zod.string().min(1, { message: 'Zip Không được bỏ trống!' }),
-  about: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+  address: zod.string().min(1, { message: toastMessage.error.empty }),
+  state: zod.string().min(1, { message: toastMessage.error.empty }),
+  city: zod.string().min(1, { message: toastMessage.error.empty }),
+  zipCode: zod.string().min(1, { message: toastMessage.error.empty }),
+  about: zod.string().min(1, { message: toastMessage.error.empty }),
   // Not required
   isPublic: zod.boolean(),
 });

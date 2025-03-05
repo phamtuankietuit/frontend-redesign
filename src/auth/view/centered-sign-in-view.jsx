@@ -16,7 +16,9 @@ import { RouterLink } from 'src/routes/components';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { selectAuth } from 'src/state/auth/auth.slice';
+import { toastMessage } from 'src/utils/constant';
+
+import { selectAuth, setSignUp } from 'src/state/auth/auth.slice';
 import { getAccessToken } from 'src/services/token.service';
 import { getMeAsync, signInAsync } from 'src/services/auth/auth.service';
 
@@ -32,9 +34,9 @@ import { FormHead } from '../components/form-head';
 export const SignInSchema = zod.object({
   email: zod
     .string()
-    .min(1, { message: 'Không được bỏ trống!' })
-    .email({ message: 'Email không hợp lệ!' }),
-  password: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+    .min(1, { message: toastMessage.error.empty })
+    .email({ message: toastMessage.error.invalidEmail }),
+  password: zod.string().min(1, { message: toastMessage.error.empty }),
 });
 
 // ----------------------------------------------------------------------
@@ -81,6 +83,10 @@ export function CenteredSignInView() {
       toast.error('Có lỗi xảy ra, vui lòng thử lại!');
     }
   });
+
+  const handleClearSignUpForm = () => {
+    dispatch(setSignUp({}));
+  };
 
   const renderLogo = <AnimateLogo2 sx={{ mb: 3, mx: 'auto' }} />;
 
@@ -153,6 +159,7 @@ export function CenteredSignInView() {
               component={RouterLink}
               href={paths.auth.signUp}
               variant="subtitle2"
+              onClick={handleClearSignUpForm}
             >
               Đăng ký
             </Link>

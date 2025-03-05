@@ -11,9 +11,14 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
+import { toastMessage } from 'src/utils/constant';
 import { phoneNumberRegex } from 'src/utils/regex';
 
-import { selectAuth, setSignUp } from 'src/state/auth/auth.slice';
+import {
+  selectAuth,
+  setSignUp,
+  setVerifyEmail,
+} from 'src/state/auth/auth.slice';
 
 import { toast } from 'src/components/snackbar';
 import { AnimateLogo2 } from 'src/components/animate';
@@ -26,12 +31,12 @@ import { FormHead } from '../components/form-head';
 export const SignUpSchema = zod.object({
   email: zod
     .string()
-    .min(1, { message: 'Không được bỏ trống!' })
-    .email({ message: 'Email không hợp lệ!' }),
-  name: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+    .min(1, { message: toastMessage.error.empty })
+    .email({ message: toastMessage.error.invalidEmail }),
+  name: zod.string().min(1, { message: toastMessage.error.empty }),
   phoneNumber: zod
     .string()
-    .min(1, { message: 'Không được bỏ trống!' })
+    .min(1, { message: toastMessage.error.empty })
     .regex(phoneNumberRegex, {
       message: 'Số điện thoại không hợp lệ!',
     }),
@@ -66,6 +71,7 @@ export function CenteredSignUpView() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       console.info('DATA', data);
       toast.success('Vui lòng kiểm tra email!');
+
       dispatch(
         setSignUp({
           email: data.email,
@@ -73,6 +79,9 @@ export function CenteredSignUpView() {
           phoneNumber: data.phoneNumber,
         }),
       );
+
+      dispatch(setVerifyEmail(data.email));
+
       router.push(paths.auth.verify);
     } catch (error) {
       console.error(error);

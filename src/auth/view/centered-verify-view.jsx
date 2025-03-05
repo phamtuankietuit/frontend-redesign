@@ -1,7 +1,7 @@
 import { z as zod } from 'zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
-import { useLocation } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Box from '@mui/material/Box';
@@ -14,6 +14,7 @@ import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { passwordRegex } from 'src/utils/regex';
+import { toastMessage } from 'src/utils/constant';
 
 import { EmailInboxIcon } from 'src/assets/icons';
 import { selectAuth } from 'src/state/auth/auth.slice';
@@ -32,16 +33,16 @@ export const VerifySchema = zod
   .object({
     code: zod
       .string()
-      .min(1, { message: 'Không được bỏ trống!' })
+      .min(1, { message: toastMessage.error.empty })
       .min(6, { message: 'Mã xác thực phải đủ 6 ký tự!' }),
     password: zod
       .string()
-      .min(1, { message: 'Không được bỏ trống!' })
+      .min(1, { message: toastMessage.error.empty })
       .regex(passwordRegex, {
         message:
           'Chứa ít nhất 1 chữ thường, 1 chữ hoa, 1 số và ít nhất 8 ký tự!',
       }),
-    confirmPassword: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+    confirmPassword: zod.string().min(1, { message: toastMessage.error.empty }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Mật khẩu không khớp!',
@@ -52,13 +53,16 @@ export const VerifySchema = zod
 
 export function CenteredVerifyView() {
   const password = useBoolean();
+
   const confirmPassword = useBoolean();
 
-  const { signUp } = useSelector(selectAuth);
+  const [secondsResendCode, setSecondsResendCode] = useState(0);
+
+  const { signUp, verifyEmail } = useSelector(selectAuth);
 
   const defaultValues = {
     code: '',
-    email: signUp?.email || '',
+    email: verifyEmail,
     password: '',
     confirmPassword: '',
   };
@@ -89,6 +93,13 @@ export function CenteredVerifyView() {
       toast.success('Có lỗi xảy ra vui lòng thử lại!');
     }
   });
+
+  const handleResendCode = async () => {
+    setSecondsResendCode(1);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    toast.info('Đã gửi lại mã xác thực!');
+    setSecondsResendCode(0);
+  };
 
   const renderForm = (
     <Box gap={3} display="flex" flexDirection="column">
@@ -171,9 +182,13 @@ export function CenteredVerifyView() {
         {renderForm}
       </Form>
 
-      <FormResendCode onResendCode={() => {}} value={0} disabled={false} />
+      <FormResendCode
+        onResendCode={handleResendCode}
+        value={secondsResendCode}
+        disabled={secondsResendCode > 0}
+      />
 
-      <FormReturnLink label="Trở về Đăng ký" href={paths.auth.signUp} />
+      <FormReturnLink label="Trở về" href={-1} />
     </>
   );
 }

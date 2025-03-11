@@ -33,7 +33,7 @@ export function AccountBillingAddress({ addressBook }) {
       popover.onOpen(event);
       setAddressId(id);
     },
-    [popover]
+    [popover],
   );
 
   const handleClose = useCallback(() => {
@@ -45,7 +45,7 @@ export function AccountBillingAddress({ addressBook }) {
     <>
       <Card>
         <CardHeader
-          title="Address book"
+          title="Địa chỉ"
           action={
             <Button
               size="small"
@@ -53,7 +53,7 @@ export function AccountBillingAddress({ addressBook }) {
               startIcon={<Iconify icon="mingcute:add-line" />}
               onClick={addressForm.onTrue}
             >
-              Address
+              Thêm mới
             </Button>
           }
         />
@@ -80,7 +80,11 @@ export function AccountBillingAddress({ addressBook }) {
         </Stack>
       </Card>
 
-      <CustomPopover open={popover.open} anchorEl={popover.anchorEl} onClose={handleClose}>
+      <CustomPopover
+        open={popover.open}
+        anchorEl={popover.anchorEl}
+        onClose={handleClose}
+      >
         <MenuList>
           <MenuItem
             onClick={() => {
@@ -89,7 +93,7 @@ export function AccountBillingAddress({ addressBook }) {
             }}
           >
             <Iconify icon="eva:star-fill" />
-            Set as primary
+            Đặt làm mặc định
           </MenuItem>
 
           <MenuItem
@@ -99,7 +103,7 @@ export function AccountBillingAddress({ addressBook }) {
             }}
           >
             <Iconify icon="solar:pen-bold" />
-            Edit
+            Chỉnh sửa
           </MenuItem>
 
           <MenuItem
@@ -110,7 +114,7 @@ export function AccountBillingAddress({ addressBook }) {
             sx={{ color: 'error.main' }}
           >
             <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
+            Xóa
           </MenuItem>
         </MenuList>
       </CustomPopover>

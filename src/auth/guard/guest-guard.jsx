@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { CONFIG } from 'src/config-global';
+import { getAccessToken } from 'src/services/token.service';
 
 import { SplashScreen } from 'src/components/loading-screen';
 
@@ -26,7 +27,7 @@ export function GuestGuard({ children }) {
       return;
     }
 
-    if (isAuthenticated) {
+    if (isAuthenticated || getAccessToken() !== null) {
       router.replace(returnTo);
       return;
     }

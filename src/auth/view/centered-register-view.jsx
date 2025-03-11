@@ -8,12 +8,12 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { passwordRegex } from 'src/utils/regex';
 import { toastMessage } from 'src/utils/constant';
+import { passwordRegex, phoneNumberRegex } from 'src/utils/regex';
 
 import { EmailInboxIcon } from 'src/assets/icons';
 
@@ -25,8 +25,15 @@ import { FormHead } from '../components/form-head';
 
 // ----------------------------------------------------------------------
 
-export const UpdatePasswordSchema = zod
+export const RegisterSchema = zod
   .object({
+    name: zod.string().min(1, { message: toastMessage.error.empty }),
+    phoneNumber: zod
+      .string()
+      .min(1, { message: toastMessage.error.empty })
+      .regex(phoneNumberRegex, {
+        message: 'Số điện thoại không hợp lệ!',
+      }),
     password: zod
       .string()
       .min(1, { message: toastMessage.error.empty })
@@ -43,20 +50,24 @@ export const UpdatePasswordSchema = zod
 
 // ----------------------------------------------------------------------
 
-export function CenteredUpdatePasswordView() {
+export function CenteredRegisterView() {
   const router = useRouter();
 
   const password = useBoolean();
 
   const confirmPassword = useBoolean();
 
+  const token = useSearchParams().get('token');
+
   const defaultValues = {
+    name: '',
+    phoneNumber: '',
     password: '',
     confirmPassword: '',
   };
 
   const methods = useForm({
-    resolver: zodResolver(UpdatePasswordSchema),
+    resolver: zodResolver(RegisterSchema),
     defaultValues,
   });
 
@@ -70,7 +81,7 @@ export function CenteredUpdatePasswordView() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       console.info('DATA', data);
 
-      toast.success('Cập nhật mật khẩu thành công. Vui lòng đăng nhập lại!');
+      toast.success('Đăng ký thành công. Vui lòng đăng nhập!');
 
       router.replace(paths.auth.signIn);
     } catch (error) {
@@ -82,11 +93,24 @@ export function CenteredUpdatePasswordView() {
   const renderForm = (
     <Box gap={3} display="flex" flexDirection="column">
       <Field.Text
+        name="name"
+        label="Họ tên"
+        InputLabelProps={{ shrink: true }}
+        autoFocus
+      />
+
+      <Field.Text
+        name="phoneNumber"
+        label="Số điện thoại"
+        type="tel"
+        InputLabelProps={{ shrink: true }}
+      />
+
+      <Field.Text
         name="password"
         label="Mật khẩu"
         type={password.value ? 'text' : 'password'}
         InputLabelProps={{ shrink: true }}
-        autoFocus
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -130,9 +154,9 @@ export function CenteredUpdatePasswordView() {
         type="submit"
         variant="contained"
         loading={isSubmitting}
-        loadingIndicator="Đang cập nhật..."
+        loadingIndicator="Đang đăng ký..."
       >
-        Cập nhật
+        Đăng ký
       </LoadingButton>
     </Box>
   );
@@ -141,8 +165,8 @@ export function CenteredUpdatePasswordView() {
     <>
       <FormHead
         icon={<EmailInboxIcon />}
-        title="Đặt lại mật khẩu"
-        description="Đặt lại mật khẩu cho tài khoản của bạn"
+        title="Đăng ký"
+        description="Nhập thông tin đăng ký để tạo tài khoản!"
       />
 
       <Form methods={methods} onSubmit={onSubmit}>

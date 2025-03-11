@@ -1,30 +1,22 @@
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useDispatch, useSelector } from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { toastMessage } from 'src/utils/constant';
-import { phoneNumberRegex } from 'src/utils/regex';
-
-import {
-  selectAuth,
-  setSignUp,
-  setVerifyEmail,
-} from 'src/state/auth/auth.slice';
 
 import { toast } from 'src/components/snackbar';
 import { AnimateLogo2 } from 'src/components/animate';
 import { Form, Field } from 'src/components/hook-form';
 
 import { FormHead } from '../components/form-head';
+import { FormReturnLink } from '../components/form-return-link';
 
 // ----------------------------------------------------------------------
 
@@ -33,27 +25,13 @@ export const SignUpSchema = zod.object({
     .string()
     .min(1, { message: toastMessage.error.empty })
     .email({ message: toastMessage.error.invalidEmail }),
-  name: zod.string().min(1, { message: toastMessage.error.empty }),
-  phoneNumber: zod
-    .string()
-    .min(1, { message: toastMessage.error.empty })
-    .regex(phoneNumberRegex, {
-      message: 'Số điện thoại không hợp lệ!',
-    }),
 });
 
 // ----------------------------------------------------------------------
 
 export function CenteredSignUpView() {
-  const router = useRouter();
-  const dispatch = useDispatch();
-
-  const { signUp } = useSelector(selectAuth);
-
   const defaultValues = {
-    email: signUp?.email || '',
-    name: signUp?.name || '',
-    phoneNumber: signUp?.phoneNumber || '',
+    email: '',
   };
 
   const methods = useForm({
@@ -70,19 +48,8 @@ export function CenteredSignUpView() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
       console.info('DATA', data);
-      toast.success('Vui lòng kiểm tra email!');
 
-      dispatch(
-        setSignUp({
-          email: data.email,
-          name: data.name,
-          phoneNumber: data.phoneNumber,
-        }),
-      );
-
-      dispatch(setVerifyEmail(data.email));
-
-      router.push(paths.auth.verify);
+      toast.success('Vui lòng kiểm tra email để tiếp tục!');
     } catch (error) {
       console.error(error);
       toast.success('Có lỗi xảy ra vui lòng thử lại!');
@@ -97,15 +64,7 @@ export function CenteredSignUpView() {
         name="email"
         label="Email"
         InputLabelProps={{ shrink: true }}
-      />
-
-      <Field.Text name="name" label="Tên" InputLabelProps={{ shrink: true }} />
-
-      <Field.Text
-        name="phoneNumber"
-        label="Số điện thoại"
-        type="tel"
-        InputLabelProps={{ shrink: true }}
+        autoFocus
       />
 
       <LoadingButton
@@ -145,6 +104,8 @@ export function CenteredSignUpView() {
       <Form methods={methods} onSubmit={onSubmit}>
         {renderForm}
       </Form>
+
+      <FormReturnLink label="Trở về Đăng nhập" href={paths.auth.signIn} />
     </>
   );
 }

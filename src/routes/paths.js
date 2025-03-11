@@ -12,7 +12,7 @@ const ROOTS = {
   AUTH: '/auth',
   AUTH_DEMO: '/auth-demo',
   DASHBOARD: '/admin',
-  PROFILE: '/customer',
+  ACCOUNT: '/account',
 };
 
 // ----------------------------------------------------------------------
@@ -69,10 +69,14 @@ export const paths = {
       verify: `${ROOTS.AUTH_DEMO}/centered/verify`,
     },
   },
-  // PROFILE
-  profile: {
-    root: ROOTS.PROFILE,
-    order: `${ROOTS.PROFILE}/orders`,
+  // ACCOUNT
+  account: {
+    root: ROOTS.ACCOUNT,
+    general: `${ROOTS.ACCOUNT}/general`,
+    address: `${ROOTS.ACCOUNT}/address`,
+    notifications: `${ROOTS.ACCOUNT}/notifications`,
+    security: `${ROOTS.ACCOUNT}/security`,
+    orders: `${ROOTS.ACCOUNT}/orders`,
   },
   // DASHBOARD
   dashboard: {

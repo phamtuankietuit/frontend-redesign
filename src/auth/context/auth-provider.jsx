@@ -20,10 +20,10 @@ export function AuthProvider({ children }) {
       const accessToken = getAccessToken();
 
       if (!isAuthenticated && accessToken && isValidToken(accessToken)) {
-        await dispatch(getMeAsync).unwrap();
+        dispatch(getMeAsync);
       }
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   }, [dispatch, isAuthenticated]);
 

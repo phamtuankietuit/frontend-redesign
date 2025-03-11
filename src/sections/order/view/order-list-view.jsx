@@ -155,7 +155,6 @@ export function OrderListView({ isCustomer = false }) {
     },
     ..._orders,
   ]);
-  console.log('🚀 ~ OrderListView ~ _orders:', _orders);
 
   const filters = useSetState({
     name: '',
@@ -286,108 +285,6 @@ export function OrderListView({ isCustomer = false }) {
               />
             ))}
           </Tabs>
-
-          <OrderTableToolbar
-            filters={filters}
-            onResetPage={table.onResetPage}
-            dateError={dateError}
-          />
-
-          {canReset && (
-            <OrderTableFiltersResult
-              filters={filters}
-              totalResults={dataFiltered.length}
-              onResetPage={table.onResetPage}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
-
-          <Box sx={{ position: 'relative' }}>
-            {/* <TableSelectedAction
-              dense={table.dense}
-              numSelected={table.selected.length}
-              rowCount={dataFiltered.length}
-              onSelectAllRows={(checked) =>
-                table.onSelectAllRows(
-                  checked,
-                  dataFiltered.map((row) => row.id),
-                )
-              }
-              action={
-                <Tooltip title="Xóa">
-                  <IconButton color="primary" onClick={confirm.onTrue}>
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Tooltip>
-              }
-            /> */}
-
-            <Scrollbar sx={{ minHeight: 444 }}>
-              <Table
-                size={table.dense ? 'small' : 'medium'}
-                sx={{ minWidth: 960 }}
-              >
-                <TableHeadCustom
-                  order={table.order}
-                  orderBy={table.orderBy}
-                  headLabel={
-                    isCustomer
-                      ? TABLE_HEAD.filter((item) => item.id !== 'name')
-                      : TABLE_HEAD
-                  }
-                  rowCount={dataFiltered.length}
-                  // numSelected={table.selected.length}
-                  onSort={table.onSort}
-                  // onSelectAllRows={(checked) =>
-                  //   table.onSelectAllRows(
-                  //     checked,
-                  //     dataFiltered.map((row) => row.id),
-                  //   )
-                  // }
-                />
-
-                <TableBody>
-                  {dataFiltered
-                    .slice(
-                      table.page * table.rowsPerPage,
-                      table.page * table.rowsPerPage + table.rowsPerPage,
-                    )
-                    .map((row) => (
-                      <OrderTableRow
-                        key={row.id}
-                        row={row}
-                        // selected={table.selected.includes(row.id)}
-                        // onSelectRow={() => table.onSelectRow(row.id)}
-                        onDeleteRow={() => handleDeleteRow(row.id)}
-                        onViewRow={() => handleViewRow(row.id)}
-                        isCustomer={isCustomer}
-                      />
-                    ))}
-
-                  <TableEmptyRows
-                    height={table.dense ? 56 : 56 + 20}
-                    emptyRows={emptyRows(
-                      table.page,
-                      table.rowsPerPage,
-                      dataFiltered.length,
-                    )}
-                  />
-
-                  <TableNoData notFound={notFound} />
-                </TableBody>
-              </Table>
-            </Scrollbar>
-          </Box>
-
-          <TablePaginationCustom
-            page={table.page}
-            dense={table.dense}
-            count={dataFiltered.length}
-            rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onChangeDense={table.onChangeDense}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
-          />
         </Card>
       </DashboardContent>
 

@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 import { z as zod } from 'zod';
 
+import { toastMessage } from 'src/utils/constant';
+
 // ----------------------------------------------------------------------
 
 export const schemaHelper = {
@@ -11,14 +13,14 @@ export const schemaHelper = {
   phoneNumber: (props) =>
     zod
       .string({
-        required_error: props?.message?.required_error ?? 'Phone number is required!',
-        invalid_type_error: props?.message?.invalid_type_error ?? 'Invalid phone number!',
+        required_error: props?.message?.required_error ?? toastMessage.error.empty,
+        invalid_type_error: props?.message?.invalid_type_error ?? toastMessage.error.invalidPhoneNumber,
       })
       .min(1, {
-        message: props?.message?.required_error ?? 'Phone number is required!',
+        message: props?.message?.required_error ?? toastMessage.error.empty,
       })
       .refine((data) => props?.isValidPhoneNumber?.(data), {
-        message: props?.message?.invalid_type_error ?? 'Invalid phone number!',
+        message: props?.message?.invalid_type_error ?? toastMessage.error.invalidPhoneNumber,
       }),
   /**
    * Date
@@ -65,7 +67,7 @@ export const schemaHelper = {
    */
   objectOrNull: (props) =>
     zod.custom().refine((data) => data !== null && data !== '', {
-      message: props?.message?.required_error ?? 'Field is required!',
+      message: props?.message?.required_error ?? toastMessage.error.empty,
     }),
   /**
    * Boolean

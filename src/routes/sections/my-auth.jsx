@@ -15,6 +15,7 @@ const CenteredLayout = {
   VerifyPage: lazy(() => import('src/pages/my-auth/verify')),
   ResetPasswordPage: lazy(() => import('src/pages/my-auth/reset-password')),
   UpdatePasswordPage: lazy(() => import('src/pages/my-auth/update-password')),
+  RegisterPage: lazy(() => import('src/pages/my-auth/register')),
 };
 
 const authCentered = {
@@ -35,6 +36,7 @@ const authCentered = {
     { path: 'sign-up', element: <CenteredLayout.SignUpPage /> },
     { path: 'verify', element: <CenteredLayout.VerifyPage /> },
     { path: 'reset-password', element: <CenteredLayout.ResetPasswordPage /> },
+    { path: 'register', element: <CenteredLayout.RegisterPage /> },
     { path: 'update-password', element: <CenteredLayout.UpdatePasswordPage /> },
   ],
 };

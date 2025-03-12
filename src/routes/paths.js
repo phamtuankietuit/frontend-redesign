@@ -76,7 +76,7 @@ export const paths = {
     address: `${ROOTS.ACCOUNT}/address`,
     notifications: `${ROOTS.ACCOUNT}/notifications`,
     security: `${ROOTS.ACCOUNT}/security`,
-    orders: `${ROOTS.ACCOUNT}/orders`,
+    orders: `/orders`,
   },
   // DASHBOARD
   dashboard: {

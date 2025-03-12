@@ -68,9 +68,9 @@ export const profileRoutes = [
               </UserAccountPage>
             ),
           },
-          { path: 'orders', element: <OrderListPage /> },
         ],
       },
+      { path: 'orders', element: <OrderListPage /> },
     ],
   },
 ];

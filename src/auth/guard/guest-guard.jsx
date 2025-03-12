@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { CONFIG } from 'src/config-global';
-import { getAccessToken } from 'src/services/token.service';
 
 import { SplashScreen } from 'src/components/loading-screen';
 
@@ -16,7 +15,7 @@ export function GuestGuard({ children }) {
 
   const searchParams = useSearchParams();
 
-  const { loading, isAuthenticated } = useAuthContext();
+  const { user, loading } = useAuthContext();
 
   const [isChecking, setIsChecking] = useState(true);
 
@@ -27,7 +26,7 @@ export function GuestGuard({ children }) {
       return;
     }
 
-    if (isAuthenticated || getAccessToken() !== null) {
+    if (user) {
       router.replace(returnTo);
       return;
     }
@@ -38,7 +37,7 @@ export function GuestGuard({ children }) {
   useEffect(() => {
     checkPermissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, loading]);
+  }, [user, loading]);
 
   if (isChecking) {
     return <SplashScreen />;

@@ -66,7 +66,7 @@ export function CenteredSignInView() {
         }),
       ).unwrap();
 
-      router.replace('/');
+      router.refresh();
     } catch (error) {
       console.error(error);
     }

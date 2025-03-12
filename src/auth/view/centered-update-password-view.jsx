@@ -8,7 +8,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
@@ -49,6 +49,8 @@ export function CenteredUpdatePasswordView() {
   const password = useBoolean();
 
   const confirmPassword = useBoolean();
+
+  const token = useSearchParams().get('token');
 
   const defaultValues = {
     password: '',

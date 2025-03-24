@@ -1,5 +1,6 @@
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
+import { useDispatch } from 'react-redux';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Box from '@mui/material/Box';
@@ -10,6 +11,9 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { toastMessage } from 'src/utils/constant';
+
+import { CONFIG } from 'src/config-global';
+import { sendSignUpEmailAsync } from 'src/services/auth/auth.service';
 
 import { toast } from 'src/components/snackbar';
 import { AnimateLogo2 } from 'src/components/animate';
@@ -30,6 +34,8 @@ export const SignUpSchema = zod.object({
 // ----------------------------------------------------------------------
 
 export function CenteredSignUpView() {
+  const dispatch = useDispatch();
+
   const defaultValues = {
     email: '',
   };
@@ -46,13 +52,16 @@ export function CenteredSignUpView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.info('DATA', data);
+      await dispatch(
+        sendSignUpEmailAsync({
+          email: data.email,
+          redirectUrlBase: CONFIG.frontendUrl + paths.auth.register,
+        }),
+      ).unwrap();
 
       toast.success('Vui lòng kiểm tra email để tiếp tục!');
     } catch (error) {
       console.error(error);
-      toast.success('Có lỗi xảy ra vui lòng thử lại!');
     }
   });
 

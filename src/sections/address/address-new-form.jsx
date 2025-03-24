@@ -1,6 +1,6 @@
 import { z as zod } from 'zod';
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useMemo, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -16,21 +16,26 @@ import DialogContent from '@mui/material/DialogContent';
 import { toastMessage } from 'src/utils/constant';
 import { phoneNumberRegex } from 'src/utils/regex';
 
-import { selectAddress } from 'src/state/address/address.slice';
 import {
-  getWards,
-  getDistricts,
-  getProvinces,
+  setWards,
+  setAddress,
+  setProvinces,
+  setDistricts,
+  selectAddress,
+} from 'src/state/address/address.slice';
+import {
+  getWardsAsync,
+  getDistrictsAsync,
+  getProvincesAsync,
 } from 'src/services/address/address.service';
 
-import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 
-// -----------------------s-----------------------------------------------
+// ----------------------------------------------------------------------
 
 export const NewAddressSchema = zod.object({
-  name: zod.string().min(1, { message: toastMessage.error.empty }),
-  address: zod.string().min(1, { message: toastMessage.error.empty }),
+  receiverName: zod.string().min(1, { message: toastMessage.error.empty }),
+  detailAddress: zod.string().min(1, { message: toastMessage.error.empty }),
   phoneNumber: zod
     .string()
     .min(1, { message: toastMessage.error.empty })
@@ -41,31 +46,36 @@ export const NewAddressSchema = zod.object({
   district: schemaHelper.objectOrNull(),
   ward: schemaHelper.objectOrNull(),
   // Not required
-  addressType: zod.string(),
-  primary: zod.boolean(),
+  type: zod.string(),
+  isDefault: zod.boolean(),
 });
 
 export function AddressNewForm({ open, onClose, onCreate }) {
   const dispatch = useDispatch();
 
-  const { provinces, districts, wards } = useSelector(selectAddress);
+  const { address, provinces, districts, wards } = useSelector(selectAddress);
 
-  useEffect(() => {
-    if (provinces.length === 0) {
-      dispatch(getProvinces());
-    }
-  }, [dispatch, provinces]);
-
-  const defaultValues = {
-    addressType: 'Home',
-    name: '',
-    phoneNumber: '',
-    address: '',
-    province: null,
-    district: null,
-    ward: null,
-    primary: false,
-  };
+  const defaultValues = useMemo(
+    () => ({
+      type: String(address?.type || '1'),
+      receiverName: address?.receiverName || '',
+      phoneNumber: address?.phoneNumber || '',
+      detailAddress: address?.detailAddress || '',
+      province:
+        provinces.find(
+          (province) => province.ProvinceID === address?.provinceId,
+        ) || null,
+      district:
+        districts.find(
+          (district) => district.DistrictID === address?.districtId,
+        ) || null,
+      ward:
+        wards.find((ward) => ward.WardCode === address?.communeCode) || null,
+      isDefault: !!address?.isDefault,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [address],
+  );
 
   const methods = useForm({
     mode: 'all',
@@ -74,6 +84,7 @@ export function AddressNewForm({ open, onClose, onCreate }) {
   });
 
   const {
+    reset,
     handleSubmit,
     setValue,
     watch,
@@ -81,50 +92,87 @@ export function AddressNewForm({ open, onClose, onCreate }) {
   } = methods;
 
   useEffect(() => {
+    if (provinces.length === 0) {
+      dispatch(getProvincesAsync());
+    }
+  }, [dispatch, provinces]);
+
+  useEffect(() => {
     const subscription = watch((value, { name }) => {
       if (name === 'province' && value.province) {
-        dispatch(getDistricts(value.province.ProvinceID));
+        dispatch(getDistrictsAsync(value.province.ProvinceID));
         setValue('district', null);
         setValue('ward', null);
       } else if (name === 'district' && value.district) {
-        dispatch(getWards(value.district.DistrictID));
+        dispatch(getWardsAsync(value.district.DistrictID));
         setValue('ward', null);
       }
     });
     return () => subscription.unsubscribe();
   }, [dispatch, watch, setValue]);
 
+  useEffect(() => {
+    if (address) {
+      reset(defaultValues);
+    }
+  }, [address, defaultValues, reset]);
+
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log('DATA', data);
-      toast.success('Thêm địa chỉ thành công!');
-      // onCreate({
-      //   name: data.name,
-      //   phoneNumber: data.phoneNumber,
-      //   fullAddress: `${data.address}, ${data.city}, ${data.state}, ${data.country}, ${data.zipCode}`,
-      //   addressType: data.addressType,
-      //   primary: data.primary,
-      // });
-      onClose();
+      await onCreate({
+        ...address,
+        receiverName: data.receiverName,
+        phoneNumber: data.phoneNumber,
+        provinceId: data.province.ProvinceID,
+        provinceName: data.province.ProvinceName,
+        districtId: data.district.DistrictID,
+        districtName: data.district.DistrictName,
+        communeCode: data.ward.WardCode,
+        communeName: data.ward.WardName,
+        detailAddress: data.detailAddress,
+        isDefault: data.isDefault,
+        type: Number(data.type),
+      });
+
+      handleClearForm();
     } catch (error) {
       console.error(error);
     }
   });
 
+  const handleClearForm = () => {
+    dispatch(setAddress(null));
+    dispatch(setProvinces([]));
+    dispatch(setDistricts([]));
+    dispatch(setWards([]));
+    reset({
+      type: '1',
+      receiverName: '',
+      phoneNumber: '',
+      detailAddress: '',
+      province: null,
+      district: null,
+      ward: null,
+      isDefault: false,
+    });
+    onClose();
+  };
+
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
       <Form methods={methods} onSubmit={onSubmit}>
-        <DialogTitle>Thêm địa chỉ</DialogTitle>
+        <DialogTitle>
+          {address ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ'}
+        </DialogTitle>
 
         <DialogContent dividers>
           <Stack spacing={3}>
             <Field.RadioGroup
               row
-              name="addressType"
+              name="type"
               options={[
-                { label: 'Nhà ở', value: 'Home' },
-                { label: 'Văn phòng', value: 'Office' },
+                { label: 'Nhà ở', value: '1' },
+                { label: 'Văn phòng', value: '2' },
               ]}
             />
 
@@ -137,7 +185,7 @@ export function AddressNewForm({ open, onClose, onCreate }) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <Field.Text name="name" label="Họ và tên" />
+              <Field.Text name="receiverName" label="Họ và tên" />
 
               <Field.Text
                 name="phoneNumber"
@@ -211,17 +259,21 @@ export function AddressNewForm({ open, onClose, onCreate }) {
             </Box>
 
             <Field.Text
-              name="address"
+              name="detailAddress"
               label="Địa chỉ chi tiết"
               placeholder="Số nhà, tên đường"
             />
 
-            <Field.Checkbox name="primary" label="Đặt làm mặc định" />
+            <Field.Checkbox
+              name="isDefault"
+              label="Đặt làm mặc định"
+              disabled={address?.isDefault}
+            />
           </Stack>
         </DialogContent>
 
         <DialogActions>
-          <Button color="inherit" variant="outlined" onClick={onClose}>
+          <Button color="inherit" variant="outlined" onClick={handleClearForm}>
             Hủy
           </Button>
 

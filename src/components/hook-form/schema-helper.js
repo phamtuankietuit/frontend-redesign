@@ -38,7 +38,7 @@ export const schemaHelper = {
         if (!dateString) {
           ctx.addIssue({
             code: zod.ZodIssueCode.custom,
-            message: props?.message?.required_error ?? 'Date is required!',
+            message: props?.message?.required_error ?? 'Không được bỏ trống!',
           });
           return null;
         }
@@ -46,7 +46,7 @@ export const schemaHelper = {
         if (!stringToDate.safeParse(date).success) {
           ctx.addIssue({
             code: zod.ZodIssueCode.invalid_date,
-            message: props?.message?.invalid_type_error ?? 'Invalid Date!!',
+            message: props?.message?.invalid_type_error ?? 'Ngày không hợp lệ!',
           });
         }
 

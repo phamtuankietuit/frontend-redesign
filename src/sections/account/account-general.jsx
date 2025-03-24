@@ -1,9 +1,9 @@
 import dayjs from 'dayjs';
 import { z as zod } from 'zod';
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -12,11 +12,12 @@ import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Radio, RadioGroup, Typography, FormControlLabel } from '@mui/material';
 
-import { fData } from 'src/utils/format-number';
 import { toastMessage } from 'src/utils/constant';
 import { phoneNumberRegex } from 'src/utils/regex';
 
 import { selectAuth } from 'src/state/auth/auth.slice';
+import { updateMeAsync } from 'src/services/auth/auth.service';
+import { uploadImagesAsync } from 'src/services/file/file.service';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -42,6 +43,8 @@ export const UpdateUserSchema = zod.object({
 });
 
 export function AccountGeneral() {
+  const dispatch = useDispatch();
+
   const { user } = useSelector(selectAuth);
 
   const defaultValues = useMemo(
@@ -51,7 +54,7 @@ export function AccountGeneral() {
       imageUrl: user.imageUrl || null,
       phoneNumber: user?.phoneNumber || '',
       dateOfBirth: dayjs(new Date(user?.dateOfBirth)) || null,
-      gender: user?.gender || 'male',
+      gender: String(user?.gender || '1'),
     }),
     [user],
   );
@@ -70,11 +73,33 @@ export function AccountGeneral() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success('Cập nhật thành công!');
-      console.info('DATA', data);
+      if (typeof data.imageUrl === 'object') {
+        await dispatch(uploadImagesAsync([data.imageUrl]))
+          .unwrap()
+          .then((response) => {
+            data.imageUrl = response[0];
+          });
+      }
+
+      const { id, email, status } = user;
+
+      await dispatch(
+        updateMeAsync({
+          id: user.id,
+          body: {
+            ...data,
+            gender: Number(data.gender),
+            id,
+            email,
+            status,
+          },
+        }),
+      ).unwrap();
+
+      toast.success('Cập nhật thông tin thành công!');
     } catch (error) {
       console.error(error);
+      toast.error('Có lỗi xảy ra, vui lòng thử lại!');
     }
   });
 
@@ -112,7 +137,6 @@ export function AccountGeneral() {
                   }}
                 >
                   Định dạng jpeg, jpg, png
-                  <br /> Dung lượng tối đa {fData(3145728)}
                 </Typography>
               }
             />
@@ -151,17 +175,17 @@ export function AccountGeneral() {
                   render={({ field }) => (
                     <RadioGroup {...field} row>
                       <FormControlLabel
-                        value="male"
+                        value="1"
                         control={<Radio size="medium" />}
                         label="Nam"
                       />
                       <FormControlLabel
-                        value="female"
+                        value="2"
                         control={<Radio size="medium" />}
                         label="Nữ"
                       />
                       <FormControlLabel
-                        value="other"
+                        value="3"
                         control={<Radio size="medium" />}
                         label="Khác"
                       />

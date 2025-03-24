@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 // import { socket } from "src/hooks/use-socket";
 
-import { getMeAsync, signInAsync } from "src/services/auth/auth.service";
+import { getMeAsync, signInAsync, sendSignUpEmailAsync } from "src/services/auth/auth.service";
 
 import { toast } from 'src/components/snackbar';
 
@@ -32,8 +32,14 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         // socket.emit('add-user', action.payload.id);
+      })
+      .addCase(sendSignUpEmailAsync.rejected, (state, action) => {
+        if (action.error.message === 'Request failed with status code 409') {
+          toast.error('Email đã được đăng ký!');
+        } else {
+          toast.error('Có lỗi xảy ra vui lòng thử lại!');
+        }
       });
-    ;
   },
 });
 

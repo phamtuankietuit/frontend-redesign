@@ -12,6 +12,7 @@ export const CONFIG = {
   ghnUrl: import.meta.env.VITE_GHN_URL ?? '',
   ghnToken: import.meta.env.VITE_GHN_TOKEN ??
     '',
+  frontendUrl: import.meta.env.VITE_FRONTEND_URL ?? '',
   auth: {
     skip: false,
     redirectPath: '/',

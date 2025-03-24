@@ -37,7 +37,10 @@ const authCentered = {
     { path: 'verify', element: <CenteredLayout.VerifyPage /> },
     { path: 'reset-password', element: <CenteredLayout.ResetPasswordPage /> },
     { path: 'register', element: <CenteredLayout.RegisterPage /> },
-    { path: 'update-password', element: <CenteredLayout.UpdatePasswordPage /> },
+    {
+      path: 'update-password/:id',
+      element: <CenteredLayout.UpdatePasswordPage />,
+    },
   ],
 };
 

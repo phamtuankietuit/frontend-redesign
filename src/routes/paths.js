@@ -52,6 +52,7 @@ export const paths = {
     verify: `/verify`,
     resetPassword: '/reset-password',
     updatePassword: '/update-password',
+    register: '/register',
   },
   authDemo: {
     split: {

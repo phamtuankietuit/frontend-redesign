@@ -1,7 +1,6 @@
 import React from 'react';
+
 import { Box, Grid, Typography } from '@mui/material';
-import MarkdownEnhanced from 'src/components/markdown-enhanced';
-import { Markdown } from 'src/components/markdown';
 
 export function ProductDetailsInformation({ productTypeAttributes, sx }) {
   if (!productTypeAttributes?.length) {

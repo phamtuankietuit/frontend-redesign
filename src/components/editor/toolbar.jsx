@@ -4,8 +4,6 @@ import Divider from '@mui/material/Divider';
 import { varAlpha } from 'src/theme/styles';
 
 import { editorClasses } from './classes';
-import { LinkBlock } from './components/link-block';
-import { ImageBlock } from './components/image-block';
 import { ToolbarItem } from './components/toolbar-item';
 import { HeadingBlock } from './components/heading-block';
 

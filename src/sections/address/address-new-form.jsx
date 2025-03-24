@@ -17,17 +17,17 @@ import { toastMessage } from 'src/utils/constant';
 import { phoneNumberRegex } from 'src/utils/regex';
 
 import {
+  getWardsAsync,
+  getDistrictsAsync,
+  getProvincesAsync,
+} from 'src/services/address/address.service';
+import {
   setWards,
   setAddress,
   setProvinces,
   setDistricts,
   selectAddress,
 } from 'src/state/address/address.slice';
-import {
-  getWardsAsync,
-  getDistrictsAsync,
-  getProvincesAsync,
-} from 'src/services/address/address.service';
 
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Box from '@mui/material/Box';
-import { Grow, Badge } from '@mui/material';
+import { Grow } from '@mui/material';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 

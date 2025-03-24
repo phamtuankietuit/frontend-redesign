@@ -7,6 +7,7 @@ const MarkdownEnhanced = ({ children, className = '' }) => {
     <div className={`prose max-w-none px-6 pt-3 pb-5 ${className}`}>
       <div
         className="whitespace-pre-wrap text-justify"
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: htmlString }}
       />
     </div>

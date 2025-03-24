@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { set } from "nprogress";
 
 import { getWardsAsync, getAddressesAsync, getDistrictsAsync, getProvincesAsync } from "src/services/address/address.service";
 

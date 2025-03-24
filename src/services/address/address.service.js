@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { GET, PUT, POST, DELETE } from "../axios";
 import { ADDRESS_GET } from "../address-axios";
+import { GET, PUT, POST, DELETE } from "../axios";
 
 export const getProvincesAsync = createAsyncThunk('address/getProvincesAsync', async () => {
   const response = await ADDRESS_GET(`/province`);

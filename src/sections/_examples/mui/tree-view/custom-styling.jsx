@@ -1,4 +1,3 @@
-import { useSelector } from 'react-redux';
 import { Controller } from 'react-hook-form';
 
 import { styled } from '@mui/material/styles';
@@ -7,7 +6,6 @@ import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import { TreeItem, treeItemClasses } from '@mui/x-tree-view/TreeItem';
 
 import { varAlpha, stylesMode } from 'src/theme/styles';
-import { selectProductType } from 'src/state/product-type/product-type.slice';
 
 // ----------------------------------------------------------------------
 

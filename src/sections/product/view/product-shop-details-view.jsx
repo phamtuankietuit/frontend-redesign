@@ -17,13 +17,12 @@ import { selectProduct } from 'src/state/product/product.slice';
 
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
-import { CatalogItemCard } from 'src/components/catalog-item';
 import { MyCarousel } from 'src/components/my-carousel/my-carousel';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
+import { useCheckoutContext } from 'src/sections/checkout/context';
+
 import { CartIcon } from '../components/cart-icon';
-import { ChatIcon } from '../components/chat-icon';
-import { useCheckoutContext } from '../../checkout/context';
 import { ProductDetailsSkeleton } from '../product-skeleton';
 import { ProductDetailsReview } from '../product-details-review';
 import { ProductDetailsSummary } from '../product-details-summary';

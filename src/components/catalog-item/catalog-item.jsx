@@ -1,5 +1,7 @@
 import React from 'react';
-import { Box, Rating, Paper, Typography } from '@mui/material';
+
+import { Box, Paper, Rating, Typography } from '@mui/material';
+
 import { fCurrency } from 'src/utils/format-number';
 
 export const CatalogItemCard = ({

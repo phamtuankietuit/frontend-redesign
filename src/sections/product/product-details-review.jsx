@@ -1,17 +1,13 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Rating from '@mui/material/Rating';
-import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { sumBy } from 'src/utils/helper';
 import { fShortenNumber } from 'src/utils/format-number';
-
-import { Iconify } from 'src/components/iconify';
 
 import { ProductReviewList } from './product-review-list';
 import { ProductReviewNewForm } from './product-review-new-form';

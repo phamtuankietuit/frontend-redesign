@@ -3,10 +3,8 @@ import Drawer from '@mui/material/Drawer';
 
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { ChatRoomGroup } from './chat-room-group';
 import { ChatRoomSkeleton } from './chat-skeleton';
 import { ChatRoomSingle } from './chat-room-single';
-import { ChatRoomAttachments } from './chat-room-attachments';
 
 // ----------------------------------------------------------------------
 

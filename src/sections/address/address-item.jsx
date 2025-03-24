@@ -23,16 +23,16 @@ export function AddressItem({ address, action, sx, ...other }) {
       <Stack flexGrow={1} spacing={1}>
         <Stack direction="row" alignItems="center">
           <Typography variant="subtitle2">
-            {address.name}
+            {address.receiverName}
             <Box
               component="span"
               sx={{ ml: 0.5, typography: 'body2', color: 'text.secondary' }}
             >
-              ({address.addressType})
+              {address.type === 1 ? '(Nhà ở)' : '(Văn phòng)'}
             </Box>
           </Typography>
 
-          {address.primary && (
+          {address.isDefault && (
             <Label color="info" sx={{ ml: 1 }}>
               Mặc định
             </Label>
@@ -40,7 +40,8 @@ export function AddressItem({ address, action, sx, ...other }) {
         </Stack>
 
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          {address.fullAddress}
+          {address.detailAddress}, {address.communeName}, {address.districtName}
+          , {address.provinceName}
         </Typography>
 
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>

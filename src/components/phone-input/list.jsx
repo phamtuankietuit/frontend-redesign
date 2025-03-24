@@ -29,21 +29,25 @@ export function CountryListPopover({
 
   const selectedCountry = getCountry(countryCode);
 
-  const dataFiltered = applyFilter({ inputData: countries, query: searchCountry });
+  const dataFiltered = applyFilter({
+    inputData: countries,
+    query: searchCountry,
+  });
 
   const notFound = dataFiltered.length === 0 && !!searchCountry;
 
   const renderButton = (
     <ButtonBase
       disableRipple
-      onClick={popover.onOpen}
+      // onClick={popover.onOpen}
       sx={{
         zIndex: 9,
         display: 'flex',
         position: 'absolute',
-        justifyContent: 'flex-start',
+        justifyContent: 'space-around',
         width: 'var(--popover-button-width)',
         height: 'var(--popover-button-height)',
+        cursor: 'default',
         ...sx,
       }}
     >
@@ -56,16 +60,10 @@ export function CountryListPopover({
         }}
       />
 
-      <Iconify
-        icon="eva:chevron-down-fill"
-        sx={{ ml: 0.25, flexShrink: 0, color: 'text.disabled' }}
-      />
-
       <Box
         component="span"
         sx={{
           height: 20,
-          ml: 'auto',
           width: '1px',
           bgcolor: (theme) => theme.vars.palette.divider,
         }}
@@ -143,12 +141,19 @@ export function CountryListPopover({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: 'text.disabled' }}
+                  />
                 </InputAdornment>
               ),
               endAdornment: searchCountry && (
                 <InputAdornment position="end">
-                  <IconButton size="small" edge="end" onClick={() => onSearchCountry('')}>
+                  <IconButton
+                    size="small"
+                    edge="end"
+                    onClick={() => onSearchCountry('')}
+                  >
                     <Iconify width={16} icon="mingcute:close-line" />
                   </IconButton>
                 </InputAdornment>
@@ -158,7 +163,11 @@ export function CountryListPopover({
         </Box>
 
         <Box sx={{ flex: '1 1 auto', overflowX: 'hidden' }}>
-          {notFound ? <SearchNotFound query={searchCountry} sx={{ px: 2, pt: 5 }} /> : renderList}
+          {notFound ? (
+            <SearchNotFound query={searchCountry} sx={{ px: 2, pt: 5 }} />
+          ) : (
+            renderList
+          )}
         </Box>
       </Popover>
     </>

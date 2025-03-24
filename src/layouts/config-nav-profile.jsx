@@ -46,9 +46,27 @@ export const navData = [
     subheader: 'Hồ sơ',
     items: [
       {
-        title: 'Hồ sơ cá nhân',
-        path: paths.profile.root,
+        title: 'Hồ sơ',
+        path: paths.account.root,
         icon: ICONS.user,
+        children: [
+          {
+            title: 'Thông tin cá nhân',
+            path: paths.account.root,
+          },
+          {
+            title: 'Địa chỉ',
+            path: paths.account.address,
+          },
+          {
+            title: 'Thông báo',
+            path: paths.account.notifications,
+          },
+          {
+            title: 'Bảo mật',
+            path: paths.account.security,
+          },
+        ],
       },
     ],
   },
@@ -57,7 +75,7 @@ export const navData = [
     items: [
       {
         title: 'Đơn hàng',
-        path: paths.profile.order,
+        path: paths.account.orders,
         icon: ICONS.order,
       },
     ],

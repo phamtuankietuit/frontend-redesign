@@ -11,13 +11,15 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
+import { toastMessage } from 'src/utils/constant';
+
 import { Form, Field } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
 export const ReviewSchema = zod.object({
   rating: zod.number().min(1, 'Bạn chưa đánh giá sao!'),
-  review: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+  review: zod.string().min(1, { message: toastMessage.error.empty }),
 });
 
 // ----------------------------------------------------------------------

@@ -33,7 +33,6 @@ export function OrderTableRow({
   onDeleteRow,
   isCustomer = false,
 }) {
-  console.log('🚀 ~ isCustomer:', isCustomer);
   const confirm = useBoolean();
 
   const collapse = useBoolean();

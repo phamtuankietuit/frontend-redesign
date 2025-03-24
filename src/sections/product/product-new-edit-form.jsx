@@ -26,6 +26,7 @@ import {
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { toastMessage } from 'src/utils/constant';
 import { fCurrency } from 'src/utils/format-number';
 import { rowsWithId, transformVariants } from 'src/utils/helper';
 
@@ -53,16 +54,16 @@ import { DataGridProductVariants } from '../_examples/mui/data-grid-view/data-gr
 // ----------------------------------------------------------------------
 
 const variantsSchema = zod.object({
-  variantName: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+  variantName: zod.string().min(1, { message: toastMessage.error.empty }),
   values: zod
-    .array(zod.string().min(1, { message: 'Không được bỏ trống!' }))
+    .array(zod.string().min(1, { message: toastMessage.error.empty }))
     .min(1, 'Ít nhất một giá trị!'),
 });
 
 export const NewProductSchema = zod.object({
-  name: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+  name: zod.string().min(1, { message: toastMessage.error.empty }),
   description: schemaHelper.editor({
-    message: { required_error: 'Không được bỏ trống!' },
+    message: { required_error: toastMessage.error.empty },
   }),
   images: schemaHelper.files({
     message: { required_error: 'Chưa thêm hình ảnh!' },

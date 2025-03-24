@@ -1,47 +1,51 @@
 import { z as zod } from 'zod';
-import { useForm } from 'react-hook-form';
-import { useSelector } from 'react-redux';
-import { useLocation } from 'react-router';
+import { useDispatch } from 'react-redux';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import { FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { passwordRegex } from 'src/utils/regex';
+import { toastMessage } from 'src/utils/constant';
+import { passwordRegex, phoneNumberRegex } from 'src/utils/regex';
 
 import { EmailInboxIcon } from 'src/assets/icons';
-import { selectAuth } from 'src/state/auth/auth.slice';
+import { signUpAsync } from 'src/services/auth/auth.service';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
-import { Form, Field } from 'src/components/hook-form';
+import { Form, Field, schemaHelper } from 'src/components/hook-form';
 
 import { FormHead } from '../components/form-head';
-import { FormReturnLink } from '../components/form-return-link';
-import { FormResendCode } from '../components/form-resend-code';
 
 // ----------------------------------------------------------------------
 
-export const VerifySchema = zod
+export const RegisterSchema = zod
   .object({
-    code: zod
+    name: zod.string().min(1, { message: toastMessage.error.empty }),
+    phoneNumber: zod
       .string()
-      .min(1, { message: 'Không được bỏ trống!' })
-      .min(6, { message: 'Mã xác thực phải đủ 6 ký tự!' }),
+      .min(1, { message: toastMessage.error.empty })
+      .regex(phoneNumberRegex, {
+        message: 'Số điện thoại không hợp lệ!',
+      }),
     password: zod
       .string()
-      .min(1, { message: 'Không được bỏ trống!' })
+      .min(1, { message: toastMessage.error.empty })
       .regex(passwordRegex, {
-        message:
-          'Chứa ít nhất 1 chữ thường, 1 chữ hoa, 1 số và ít nhất 8 ký tự!',
+        message: toastMessage.error.invalidPassword,
       }),
-    confirmPassword: zod.string().min(1, { message: 'Không được bỏ trống!' }),
+    confirmPassword: zod.string().min(1, { message: toastMessage.error.empty }),
+    gender: zod.string().min(1, { message: toastMessage.error.empty }),
+    dateOfBirth: schemaHelper.date(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Mật khẩu không khớp!',
@@ -50,59 +54,110 @@ export const VerifySchema = zod
 
 // ----------------------------------------------------------------------
 
-export function CenteredVerifyView() {
+export function CenteredRegisterView() {
+  const dispatch = useDispatch();
+
+  const router = useRouter();
+
   const password = useBoolean();
+
   const confirmPassword = useBoolean();
 
-  const { signUp } = useSelector(selectAuth);
+  const token = useSearchParams().get('token');
 
   const defaultValues = {
-    code: '',
-    email: signUp?.email || '',
+    name: '',
+    phoneNumber: '',
     password: '',
     confirmPassword: '',
+    gender: '1',
+    dateOfBirth: null,
   };
 
   const methods = useForm({
-    resolver: zodResolver(VerifySchema),
+    resolver: zodResolver(RegisterSchema),
     defaultValues,
   });
 
   const {
     handleSubmit,
+    control,
     formState: { isSubmitting },
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.info('DATA', data);
-      console.info('USER', {
-        email: signUp.email,
+      const body = {
+        token,
+        fullName: data.name,
         password: data.password,
-        name: signUp.name,
-        phoneNumber: signUp.phoneNumber,
-      });
+        phoneNumber: data.phoneNumber,
+        dateOfBirth: data.dateOfBirth,
+        gender: Number(data.gender),
+      };
+
+      await dispatch(signUpAsync(body)).unwrap();
+
       toast.success('Đăng ký thành công!');
+
+      router.replace('/');
     } catch (error) {
       console.error(error);
-      toast.success('Có lỗi xảy ra vui lòng thử lại!');
+      toast.error('Có lỗi xảy ra vui lòng thử lại!');
     }
   });
 
   const renderForm = (
     <Box gap={3} display="flex" flexDirection="column">
       <Field.Text
-        name="email"
-        label="Email"
-        placeholder="example@gmail.com"
+        name="name"
+        label="Họ tên"
         InputLabelProps={{ shrink: true }}
-        InputProps={{
-          readOnly: true,
-        }}
+        autoFocus
       />
 
-      <Field.Code name="code" />
+      <Field.Text
+        name="phoneNumber"
+        label="Số điện thoại"
+        type="tel"
+        InputLabelProps={{ shrink: true }}
+      />
+
+      <Field.DatePicker
+        name="dateOfBirth"
+        openTo="year"
+        views={['day', 'month', 'year']}
+        label="Ngày sinh"
+        slotProps={{ textField: { fullWidth: true } }}
+        disableFuture
+      />
+
+      <Box sx={{ ml: 1 }}>
+        <Typography variant="subtitle2">Giới tính</Typography>
+        <Controller
+          name="gender"
+          control={control}
+          render={({ field }) => (
+            <RadioGroup {...field} row>
+              <FormControlLabel
+                value="1"
+                control={<Radio size="medium" />}
+                label="Nam"
+              />
+              <FormControlLabel
+                value="2"
+                control={<Radio size="medium" />}
+                label="Nữ"
+              />
+              <FormControlLabel
+                value="3"
+                control={<Radio size="medium" />}
+                label="Khác"
+              />
+            </RadioGroup>
+          )}
+        />
+      </Box>
 
       <Field.Text
         name="password"
@@ -152,9 +207,9 @@ export function CenteredVerifyView() {
         type="submit"
         variant="contained"
         loading={isSubmitting}
-        loadingIndicator="Đang xác thực..."
+        loadingIndicator="Đang đăng ký..."
       >
-        Xác thực
+        Đăng ký
       </LoadingButton>
     </Box>
   );
@@ -163,17 +218,13 @@ export function CenteredVerifyView() {
     <>
       <FormHead
         icon={<EmailInboxIcon />}
-        title="Kiểm tra email của bạn!"
-        description={`Hệ thống đã gửi mã xác thực qua email của bạn. \nVui lòng nhập mã xác thực vào ô bên dưới!.`}
+        title="Đăng ký"
+        description="Nhập thông tin đăng ký để tạo tài khoản!"
       />
 
       <Form methods={methods} onSubmit={onSubmit}>
         {renderForm}
       </Form>
-
-      <FormResendCode onResendCode={() => {}} value={0} disabled={false} />
-
-      <FormReturnLink label="Trở về Đăng ký" href={paths.auth.signUp} />
     </>
   );
 }

@@ -40,11 +40,7 @@ import { NotificationsDrawer } from '../components/notifications-drawer';
 export function MainLayout({ sx, data, children, header }) {
   const theme = useTheme();
 
-  const pathname = usePathname();
-
   const mobileNavOpen = useBoolean();
-
-  const homePage = pathname === '/';
 
   const layoutQuery = 'sm';
 
@@ -162,9 +158,7 @@ export function MainLayout({ sx, data, children, header }) {
       /** **************************************
        * Footer
        *************************************** */
-      footerSection={
-        homePage ? <HomeFooter /> : <Footer layoutQuery={layoutQuery} />
-      }
+      footerSection={<Footer layoutQuery={layoutQuery} />}
       /** **************************************
        * Style
        *************************************** */

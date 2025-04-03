@@ -2,13 +2,18 @@ import Fab from '@mui/material/Fab';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
+import { Rating } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { fCurrency } from 'src/utils/format-number';
+import {
+  fCurrency,
+  fMyShortenNumber,
+  fShortenNumber,
+} from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Image } from 'src/components/image';
@@ -19,11 +24,23 @@ import { useCheckoutContext } from '../checkout/context';
 
 // ----------------------------------------------------------------------
 
-export function ProductItem({ product }) {
+export function ProductItem({ product, isShowCart = true }) {
   const checkout = useCheckoutContext();
 
-  const { id, name, coverUrl, price, colors, available, sizes, priceSale, newLabel, saleLabel } =
-    product;
+  const {
+    id,
+    name,
+    coverUrl,
+    price,
+    colors,
+    available,
+    sizes,
+    priceSale,
+    newLabel,
+    saleLabel,
+    totalRatings,
+    totalReviews,
+  } = product;
 
   const linkTo = paths.product.details(id);
 
@@ -72,7 +89,7 @@ export function ProductItem({ product }) {
 
   const renderImg = (
     <Box sx={{ position: 'relative', p: 1 }}>
-      {!!available && (
+      {!!available && isShowCart && (
         <Fab
           color="warning"
           size="medium"
@@ -100,24 +117,49 @@ export function ProductItem({ product }) {
           alt={name}
           src={coverUrl}
           ratio="1/1"
-          sx={{ borderRadius: 1.5, ...(!available && { opacity: 0.48, filter: 'grayscale(1)' }) }}
+          sx={{
+            borderRadius: 1.5,
+            ...(!available && { opacity: 0.48, filter: 'grayscale(1)' }),
+          }}
         />
       </Tooltip>
     </Box>
   );
 
   const renderContent = (
-    <Stack spacing={2.5} sx={{ p: 3, pt: 2 }}>
-      <Link component={RouterLink} href={linkTo} color="inherit" variant="subtitle2" noWrap>
+    <Stack spacing={1} sx={{ p: 3, pt: 2 }}>
+      <Link
+        component={RouterLink}
+        href={linkTo}
+        color="inherit"
+        variant="subtitle2"
+        noWrap
+      >
         {name}
       </Link>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <ColorPreview colors={colors} />
+      <Stack direction="column" justifyContent="space-between" spacing={1}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          sx={{ color: 'text.disabled', typography: 'body2' }}
+        >
+          <Rating
+            size="small"
+            value={totalRatings}
+            precision={0.1}
+            readOnly
+            sx={{ mr: 1 }}
+          />
+          {`(${fMyShortenNumber(totalReviews)})`}
+        </Stack>
 
         <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
           {priceSale && (
-            <Box component="span" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
+            <Box
+              component="span"
+              sx={{ color: 'text.disabled', textDecoration: 'line-through' }}
+            >
               {fCurrency(priceSale)}
             </Box>
           )}
@@ -130,7 +172,7 @@ export function ProductItem({ product }) {
 
   return (
     <Card sx={{ '&:hover .add-cart-btn': { opacity: 1 } }}>
-      {renderLabels}
+      {/* {renderLabels} */}
 
       {renderImg}
 

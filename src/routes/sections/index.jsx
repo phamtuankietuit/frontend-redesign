@@ -12,7 +12,7 @@ import { dashboardRoutes } from './dashboard';
 
 // ----------------------------------------------------------------------
 
-const HomePage = lazy(() => import('src/pages/home'));
+const HomePage = lazy(() => import('src/pages/my-home'));
 
 export function Router() {
   return useRoutes([

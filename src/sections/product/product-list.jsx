@@ -6,15 +6,24 @@ import { ProductItemSkeleton } from './product-skeleton';
 
 // ----------------------------------------------------------------------
 
-export function ProductList({ products, loading, ...other }) {
-  const renderLoading = <ProductItemSkeleton />;
+export function ProductList({
+  products,
+  loading,
+  isShowCart = true,
+  isShowPagination = true,
+  amount = 8,
+  ...other
+}) {
+  const renderLoading = <ProductItemSkeleton amount={amount} />;
 
-  const renderList = products.map((product) => <ProductItem key={product.id} product={product} />);
+  const renderList = products.map((product) => (
+    <ProductItem key={product.id} product={product} isShowCart={isShowCart} />
+  ));
 
   return (
     <>
       <Box
-        gap={3}
+        gap={2}
         display="grid"
         gridTemplateColumns={{
           xs: 'repeat(1, 1fr)',
@@ -27,7 +36,7 @@ export function ProductList({ products, loading, ...other }) {
         {loading ? renderLoading : renderList}
       </Box>
 
-      {products.length > 8 && (
+      {products.length > 8 && isShowPagination && (
         <Pagination
           count={8}
           sx={{

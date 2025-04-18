@@ -75,10 +75,9 @@ export const PRODUCT_PUBLISH_OPTIONS = [
 ];
 
 export const PRODUCT_SORT_OPTIONS = [
-  { value: 'featured', label: 'Tính năng' },
-  { value: 'newest', label: 'Mới nhất' },
-  { value: 'priceDesc', label: 'Giá: Cao - Thấp' },
-  { value: 'priceAsc', label: 'Giá: Thấp - Cao' },
+  { value: 'CreationTime', label: 'Mới nhất' },
+  { value: 'NameDesc', label: 'Giá: Cao - Thấp' },
+  { value: 'NameAsc', label: 'Giá: Thấp - Cao' },
 ];
 
 export const PRODUCT_CATEGORY_GROUP_OPTIONS = [

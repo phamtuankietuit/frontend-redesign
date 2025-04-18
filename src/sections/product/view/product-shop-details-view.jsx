@@ -1,4 +1,5 @@
-import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -14,6 +15,7 @@ import { useTabs } from 'src/hooks/use-tabs';
 import { varAlpha } from 'src/theme/styles';
 import { _coursesFeatured } from 'src/_mock';
 import { selectProduct } from 'src/state/product/product.slice';
+import { getProductTypeByIdAsync } from 'src/services/product-type/product-type.service';
 
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
@@ -31,11 +33,24 @@ import { ProductDetailsDescription } from '../product-details-description';
 import { ProductDetailsInformation } from '../product-details-information';
 
 export function ProductShopDetailsView({ product, error, loading }) {
-  const { ratings } = useSelector(selectProduct);
+  const dispatch = useDispatch();
+
+  const { productTypesBreadcrumb, ratings } = useSelector(selectProduct);
 
   const checkout = useCheckoutContext();
 
   const tabs = useTabs('information');
+
+  useEffect(() => {
+    if (product) {
+      dispatch(
+        getProductTypeByIdAsync({
+          id: product.productTypeId,
+          params: { withParent: true },
+        }),
+      );
+    }
+  }, [dispatch, product]);
 
   if (loading) {
     return (
@@ -74,7 +89,7 @@ export function ProductShopDetailsView({ product, error, loading }) {
       <CustomBreadcrumbs
         links={[
           { name: 'Trang chủ', href: '/' },
-          { name: product?.productTypeName, href: '/' },
+          ...productTypesBreadcrumb,
           { name: product?.name || 'Sản phẩm' },
         ]}
         sx={{ mb: 5 }}
@@ -89,10 +104,10 @@ export function ProductShopDetailsView({ product, error, loading }) {
           {product && (
             <ProductDetailsSummary
               product={product}
-              // items={checkout.items}
-              // onAddCart={checkout.onAddToCart}
-              // onGotoStep={checkout.onGotoStep}
-              // disableActions={!product?.available}
+              items={checkout.items}
+              onAddCart={checkout.onAddToCart}
+              onGotoStep={checkout.onGotoStep}
+              disableActions={!product?.available}
             />
           )}
         </Grid>

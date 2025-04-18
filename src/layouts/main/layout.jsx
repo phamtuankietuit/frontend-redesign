@@ -142,14 +142,10 @@ export function MainLayout({ sx, data, children, header }) {
                 alignItems="center"
                 gap={{ xs: 0, sm: 0.75, md: 1.25 }}
               >
-                {user && getUserRole() === 'Customer' && (
-                  <NotificationsDrawer data={_notifications} />
-                )}
+                {user && <NotificationsDrawer data={_notifications} />}
                 <SettingsButton />
-                {(!user || getUserRole() === 'Admin') && <SignInButton />}
-                {user && getUserRole() === 'Customer' && (
-                  <AccountDrawer data={_account} />
-                )}
+                {!user && <SignInButton />}
+                {user && <AccountDrawer data={_account} />}
               </Box>
             ),
           }}

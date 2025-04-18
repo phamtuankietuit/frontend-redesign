@@ -19,7 +19,7 @@ import { Label } from 'src/components/label';
 import { Image } from 'src/components/image';
 import { Iconify } from 'src/components/iconify';
 import { ColorPreview } from 'src/components/color-utils';
-
+import { Logo } from 'src/components/logo';
 import { useCheckoutContext } from '../checkout/context';
 
 // ----------------------------------------------------------------------
@@ -30,11 +30,15 @@ export function ProductItem({ product, isShowCart = true }) {
   const {
     id,
     name,
-    coverUrl,
+    thumbnailImageUrl,
     price,
     colors,
     available,
     sizes,
+    totalStockQuantity,
+    minUnitPrice,
+    minRecommendedRetailPrice,
+    averageRating,
     priceSale,
     newLabel,
     saleLabel,
@@ -48,7 +52,7 @@ export function ProductItem({ product, isShowCart = true }) {
     const newProduct = {
       id,
       name,
-      coverUrl,
+      thumbnailImageUrl,
       available,
       price,
       colors: [colors[0]],
@@ -62,34 +66,34 @@ export function ProductItem({ product, isShowCart = true }) {
     }
   };
 
-  const renderLabels = (newLabel.enabled || saleLabel.enabled) && (
-    <Stack
-      direction="row"
-      alignItems="center"
-      spacing={1}
-      sx={{
-        position: 'absolute',
-        zIndex: 9,
-        top: 16,
-        right: 16,
-      }}
-    >
-      {newLabel.enabled && (
-        <Label variant="filled" color="info">
-          {newLabel.content}
-        </Label>
-      )}
-      {saleLabel.enabled && (
-        <Label variant="filled" color="error">
-          {saleLabel.content}
-        </Label>
-      )}
-    </Stack>
-  );
+  // const renderLabels = (newLabel.enabled || saleLabel.enabled) && (
+  //   <Stack
+  //     direction="row"
+  //     alignItems="center"
+  //     spacing={1}
+  //     sx={{
+  //       position: 'absolute',
+  //       zIndex: 9,
+  //       top: 16,
+  //       right: 16,
+  //     }}
+  //   >
+  //     {newLabel.enabled && (
+  //       <Label variant="filled" color="info">
+  //         {newLabel.content}
+  //       </Label>
+  //     )}
+  //     {saleLabel.enabled && (
+  //       <Label variant="filled" color="error">
+  //         {saleLabel.content}
+  //       </Label>
+  //     )}
+  //   </Stack>
+  // );
 
   const renderImg = (
     <Box sx={{ position: 'relative', p: 1 }}>
-      {!!available && isShowCart && (
+      {!!totalStockQuantity && isShowCart && (
         <Fab
           color="warning"
           size="medium"
@@ -112,14 +116,17 @@ export function ProductItem({ product, isShowCart = true }) {
         </Fab>
       )}
 
-      <Tooltip title={!available && 'Out of stock'} placement="bottom-end">
+      <Tooltip title={!totalStockQuantity && 'Hết hàng'} placement="bottom-end">
         <Image
           alt={name}
-          src={coverUrl}
+          src={thumbnailImageUrl || '/logo/my-logo-single.png'}
           ratio="1/1"
           sx={{
             borderRadius: 1.5,
-            ...(!available && { opacity: 0.48, filter: 'grayscale(1)' }),
+            ...(!totalStockQuantity && {
+              opacity: 0.48,
+              filter: 'grayscale(1)',
+            }),
           }}
         />
       </Tooltip>
@@ -146,25 +153,25 @@ export function ProductItem({ product, isShowCart = true }) {
         >
           <Rating
             size="small"
-            value={totalRatings}
+            value={4.5}
             precision={0.1}
             readOnly
             sx={{ mr: 1 }}
           />
-          {`(${fMyShortenNumber(totalReviews)})`}
+          {`(${fMyShortenNumber(32000)})`}
         </Stack>
 
         <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
-          {priceSale && (
+          {!!minUnitPrice && (
             <Box
               component="span"
               sx={{ color: 'text.disabled', textDecoration: 'line-through' }}
             >
-              {fCurrency(priceSale)}
+              {fCurrency(minUnitPrice)}
             </Box>
           )}
 
-          <Box component="span">{fCurrency(price)}</Box>
+          <Box component="span">{fCurrency(minRecommendedRetailPrice)}</Box>
         </Stack>
       </Stack>
     </Stack>

@@ -31,18 +31,8 @@ export function Router() {
       ),
     },
 
-    // Auth
-    // ...authRoutes,
-    // ...authDemoRoutes,
-
     // Dashboard
     ...dashboardRoutes,
-
-    // Main
-    // ...mainRoutes,
-
-    // Components
-    // ...componentsRoutes,
 
     // My Auth
     ...myAuthRoutes,

@@ -69,7 +69,7 @@ export const getConfigNavMain = (productTypes) => {
     subheader: productType.displayName,
     items: productType.childProductTypes.map((childProductType) => ({
       title: childProductType.displayName,
-      path: paths.product.root,
+      path: `${paths.product.root}?productTypeId=${childProductType.id}`,
     })),
   }));
 

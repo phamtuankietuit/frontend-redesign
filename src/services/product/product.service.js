@@ -12,8 +12,8 @@ export const getProductAsync = createAsyncThunk(
 
 export const getProductsAsync = createAsyncThunk(
     'product/getProductsAsync',
-    async () => {
-        const response = await GET(`/products`);
+    async (params) => {
+        const response = await GET(`/products`, { params });
         return response.data;
     }
 );
@@ -38,15 +38,13 @@ export const getProductOptionsAsync = createAsyncThunk(
     'product/getProductOptionsAsync',
     async (id) => {
         const response = await GET(`/products/${id}/options`);
-        return response.data;
+        return response.data.items;
     }
 );
 
 export const updateProductAsync = createAsyncThunk(
     'product/updateProductAsync',
     async ({ id, body }, { rejectWithValue }) => {
-        console.log("🚀 ~ id:", id);
-        console.log("🚀 ~ body:", body);
         try {
             const response = await PUT(`/products/${id}`, body);
             return response.data;

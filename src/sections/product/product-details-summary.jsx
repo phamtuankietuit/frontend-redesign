@@ -1,6 +1,6 @@
-import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -9,15 +9,16 @@ import Divider from '@mui/material/Divider';
 import { Link, Button } from '@mui/material';
 import Typography from '@mui/material/Typography';
 
-import { useSetState } from 'src/hooks/use-set-state';
+import { useBoolean } from 'src/hooks/use-boolean';
 
-import { findProduct } from 'src/utils/helper';
+import { findMatchingVariant } from 'src/utils/helper';
 import { fCurrency, fMyShortenNumber } from 'src/utils/format-number';
 
 import { selectProduct } from 'src/state/product/product.slice';
+import { getProductOptionsAsync } from 'src/services/product/product.service';
 
-import { Label } from 'src/components/label';
 import { Form } from 'src/components/hook-form';
+import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import MyOption from 'src/components/my-option/my-option';
 
@@ -32,21 +33,36 @@ export function ProductDetailsSummary({
   onGotoStep,
   ...other
 }) {
-  const { ratings } = useSelector(selectProduct);
+  const dispatch = useDispatch();
 
-  const { id, name, minUnitPrice, maxUnitPrice, productVariants } = product;
+  const { id, name: productName, productVariants } = product;
 
-  const { state, setState, setField, onResetState, canReset } = useSetState({
-    available: productVariants?.length === 1 ? productVariants[0].quantity : 0,
-  });
+  const { productOptions } = useSelector(selectProduct);
+
+  const maxUnitPrice = Math.max(
+    ...productVariants.map((item) => item.unitPrice),
+  );
+
+  const minUnitPrice = Math.min(
+    ...productVariants.map((item) => item.unitPrice),
+  );
+
+  const maxQuantity = Math.max(
+    ...productVariants.map((item) => item.stockQuantity),
+  );
+
+  const isOneVariant = product?.productVariants?.length === 1;
+
+  const isSelectedOptions = useBoolean(false);
 
   const defaultValues = {
     id,
-    skuValue: '',
-    name,
-    quantity: state.available < 1 ? 0 : 1,
+    productName,
+    quantity: 1,
+    available: maxQuantity,
     selectedOptions: null,
-    displayPrice: 0,
+    displayPrice: minUnitPrice,
+    price: minUnitPrice,
   };
 
   const methods = useForm({ defaultValues });
@@ -58,56 +74,64 @@ export function ProductDetailsSummary({
   useEffect(() => {
     if (product) {
       reset(defaultValues);
+      dispatch(getProductOptionsAsync(id));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product]);
 
-  const handleChangeOption = () => {
-    if (
-      Object.keys(values.selectedOptions)?.length ===
-      product.productVariantOptions?.length
-    ) {
-      const productVariant = findProduct(
-        productVariants,
-        values.selectedOptions,
-      );
+  useEffect(() => {
+    if (productOptions.length > 0) {
+      const selectedOptions = productOptions.map((option) => ({
+        ...option,
+        selected: null,
+      }));
 
-      if (productVariant) {
-        setValue('displayPrice', productVariant.unitPrice);
-        setState({ available: productVariant.quantity });
-      }
+      setValue('selectedOptions', selectedOptions);
+    }
+  }, [productOptions, product, setValue]);
+
+  const handleFindMatchingVariant = (selectedVariants) => {
+    if (selectedVariants.every((variant) => variant.selected !== null)) {
+      isSelectedOptions.onTrue();
+      const result = findMatchingVariant(selectedVariants, productVariants);
+      setValue('displayPrice', result.unitPrice);
+      setValue('available', result.stockQuantity);
     }
   };
 
-  const onSubmit = handleSubmit(async (data) => {
-    console.log('🚀 ~ onSubmit ~ data:', data);
-    // try {
-    //  if (!existProduct) {
-    //     onAddCart?.({
-    //       ...data,
-    //       colors: [values.colors],
-    //       subtotal: data.price * data.quantity,
-    //     });
-    //   }
-    //   onGotoStep?.(0);
-    //   router.push(paths.product.checkout);
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      value?.selectedOptions?.forEach((_, index) => {
+        if (name === `selectedOptions[${index}].selected`) {
+          handleFindMatchingVariant(value.selectedOptions);
+        }
+      });
+    });
+    return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watch]);
 
-    // } catch (error) {
-    // console.error(error);
-    // }
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      if (!isOneVariant && !isSelectedOptions.value) {
+        toast.warning('Vui lòng chọn phân loại sản phẩm!');
+      } else {
+        console.log('🚀 ~ onSubmit ~ data:', data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   });
 
   const handleAddCart = useCallback(() => {
     try {
-      onAddCart?.({
-        ...values,
-        colors: [values.colors],
-        subtotal: values.price * values.quantity,
-      });
+      if (!isOneVariant && !isSelectedOptions.value) {
+        toast.warning('Vui lòng chọn phân loại sản phẩm!');
+      }
     } catch (error) {
       console.error(error);
     }
-  }, [onAddCart, values]);
+  }, [isOneVariant, isSelectedOptions]);
 
   const renderPrice =
     minUnitPrice !== maxUnitPrice ? (
@@ -158,19 +182,16 @@ export function ProductDetailsSummary({
     </Stack>
   );
 
-  const renderOptions = product?.productVariantOptions?.map((option, index) => (
-    <Stack key={option.name} direction="column" gap={2.5}>
+  const renderOptions = productOptions?.map((option, index) => (
+    <Stack key={option.variantName} direction="column" gap={2.5}>
       <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-        {option.name}
+        {option.variantName}
       </Typography>
 
       <MyOption
-        name={`selectedOptions.${option.name}`}
+        name={`selectedOptions[${index}].selected`}
         control={control}
         values={option.values}
-        thumbnailImageUrls={option.thumbnailImageUrls}
-        largeImageUrls={option.largeImageUrls}
-        onChangeOption={handleChangeOption}
       />
     </Stack>
   ));
@@ -186,27 +207,26 @@ export function ProductDetailsSummary({
           name="quantity"
           quantity={values.quantity}
           disabledDecrease={values.quantity <= 1}
-          disabledIncrease={values.quantity >= state.available}
+          disabledIncrease={values.quantity >= values.available}
           onIncrease={() => setValue('quantity', values.quantity + 1)}
           onDecrease={() => setValue('quantity', values.quantity - 1)}
         />
-
-        <Typography
-          variant="caption"
-          component="div"
-          sx={{ textAlign: 'right' }}
-        >
-          Kho: {state.available}
-        </Typography>
       </Stack>
     </Stack>
   );
 
   const renderActions = (
-    <Stack direction="row" spacing={2}>
+    <Stack
+      direction="row"
+      spacing={2}
+      flexWrap={{
+        xs: 'wrap',
+        sm: 'nowrap',
+      }}
+    >
       <Button
         fullWidth
-        disabled={!state.available}
+        disabled={!values.available}
         size="large"
         color="warning"
         variant="contained"
@@ -222,7 +242,7 @@ export function ProductDetailsSummary({
         size="large"
         type="submit"
         variant="contained"
-        disabled={!state.available}
+        disabled={!values.available}
       >
         Mua ngay
       </Button>
@@ -237,20 +257,13 @@ export function ProductDetailsSummary({
     >
       <Rating
         size="small"
-        value={ratings?.averageRating}
+        value={4.3}
         precision={0.1}
         readOnly
         sx={{ mr: 1 }}
       />
-      {ratings
-        ? `(${fMyShortenNumber(ratings?.totalRating)} đánh giá)`
-        : `Chưa có đánh giá`}
-    </Stack>
-  );
 
-  const renderLabels = (
-    <Stack direction="row" alignItems="center" spacing={1}>
-      <Label color="info">MỚI</Label>
+      {`(${fMyShortenNumber(23000)} đánh giá)`}
     </Stack>
   );
 
@@ -259,11 +272,11 @@ export function ProductDetailsSummary({
       component="span"
       sx={{
         typography: 'overline',
-        color: (state.available < 1 && 'error.main') || 'success.main',
+        color: (values.available < 1 && 'error.main') || 'success.main',
       }}
     >
-      {state.available < 1 && 'Hết hàng'}
-      {state.available > 0 && 'Còn hàng'}
+      {values.available < 1 && 'Hết hàng'}
+      {values.available > 0 && 'Còn hàng'}
     </Box>
   );
 
@@ -271,15 +284,17 @@ export function ProductDetailsSummary({
     <Form methods={methods} onSubmit={onSubmit}>
       <Stack spacing={3} sx={{ pt: 3 }} {...other}>
         <Stack spacing={2} alignItems="flex-start">
-          {renderLabels}
-
           {renderInventoryType}
 
-          <Typography variant="h5">{name}</Typography>
+          <Typography variant="h5">{productName}</Typography>
 
           {renderRating}
 
-          {values.displayPrice !== 0 ? renderDisplayPrice : renderPrice}
+          {isOneVariant && renderDisplayPrice}
+
+          {!isOneVariant && !isSelectedOptions.value && renderPrice}
+
+          {isSelectedOptions.value && renderDisplayPrice}
         </Stack>
 
         <Divider sx={{ borderStyle: 'dashed' }} />

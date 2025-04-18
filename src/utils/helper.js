@@ -32,7 +32,7 @@ export function flattenDeep(array) {
 // ----------------------------------------------------------------------
 
 export function orderBy(array, properties, orders) {
-  return array.slice().sort((a, b) => {
+  return array?.slice()?.sort((a, b) => {
     for (let i = 0; i < properties.length; i += 1) {
       const property = properties[i];
       const order = orders && orders[i] === 'desc' ? -1 : 1;
@@ -250,3 +250,14 @@ export const findProduct = (products, criteria) =>
       const option = product.optionValues.find(opt => opt.name === key);
       return option && option.value === value;
     }));
+
+
+export function findMatchingVariant(selectedVariants, items) {
+  return items.find((item) =>
+    item.optionValues.every((option) =>
+      selectedVariants.find((selectedOption) =>
+        selectedOption.selected.value === option.value && selectedOption.variantName === option.name
+      )
+    )
+  );
+}

@@ -6,16 +6,7 @@ import { varAlpha } from 'src/theme/styles';
 
 // ----------------------------------------------------------------------
 
-export default function MyOption({
-  name,
-  values,
-  thumbnailImageUrls,
-  largeImageUrls,
-  onChangeOption,
-  control,
-  sx,
-  ...other
-}) {
+export default function MyOption({ name, control, values }) {
   return (
     <Controller
       name={name}
@@ -32,17 +23,13 @@ export default function MyOption({
             lg: 'repeat(4, 1fr)',
           }}
         >
-          {values.map((option, index) => (
+          {values?.map((option) => (
             <OptionItem
-              key={option}
+              key={option.id}
               option={option}
-              thumbImage={thumbnailImageUrls[index]}
-              selected={value === option}
+              selected={value?.id === option?.id}
               onClick={() => {
                 onChange(option);
-                if (onChangeOption) {
-                  onChangeOption();
-                }
               }}
             />
           ))}
@@ -54,7 +41,7 @@ export default function MyOption({
 
 // ----------------------------------------------------------------------
 
-function OptionItem({ option, thumbImage, selected, sx, ...other }) {
+function OptionItem({ option, selected, sx, ...other }) {
   return (
     <Box
       display="flex"
@@ -79,22 +66,12 @@ function OptionItem({ option, thumbImage, selected, sx, ...other }) {
       }}
       {...other}
     >
-      {/* <Image
-        src={thumbImage}
-        sx={{
-          width: 24,
-          height: 24,
-          borderRadius: 1,
-          objectFit: 'cover',
-        }}
-      /> */}
-
       <Box
         component="span"
         flexGrow={1}
         sx={{ typography: 'subtitle2', textAlign: 'center' }}
       >
-        {option}
+        {option?.value}
       </Box>
     </Box>
   );

@@ -1,88 +1,275 @@
-import { useSelector } from 'react-redux';
-import { useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-
-import { useBoolean } from 'src/hooks/use-boolean';
-import { useDebounce } from 'src/hooks/use-debounce';
-import { useSetState } from 'src/hooks/use-set-state';
-
-import { orderBy } from 'src/utils/helper';
-
-import { selectAuth } from 'src/state/auth/auth.slice';
-import { useSearchProducts } from 'src/actions/product';
-import { getUserRole } from 'src/services/token.service';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import {
-  PRODUCT_SORT_OPTIONS,
-  PRODUCT_COLOR_OPTIONS,
-  PRODUCT_GENDER_OPTIONS,
-  PRODUCT_RATING_OPTIONS,
-  PRODUCT_CATEGORY_OPTIONS,
-} from 'src/_mock';
+  Box,
+  Card,
+  Grid,
+  Chip,
+  Radio,
+  Divider,
+  TextField,
+  RadioGroup,
+  Autocomplete,
+  FormControlLabel,
+} from '@mui/material';
+
+import { updateURLParams } from 'src/utils/params-helper';
+
+import { PRODUCT_SORT_OPTIONS } from 'src/_mock';
+import { selectAuth } from 'src/state/auth/auth.slice';
+import { getProductsAsync } from 'src/services/product/product.service';
+import {
+  selectProduct,
+  setCatalogTableFilters,
+} from 'src/state/product/product.slice';
+import {
+  selectProductType,
+  resetProductTypeList,
+} from 'src/state/product-type/product-type.slice';
+import {
+  getProductTypeByIdAsync,
+  getProductTypesFlattenAsync,
+  getProductTypeAttributesAsync,
+} from 'src/services/product-type/product-type.service';
 
 import { EmptyContent } from 'src/components/empty-content';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { ProductList } from '../product-list';
 import { ProductSort } from '../product-sort';
-import { ProductSearch } from '../product-search';
 import { CartIcon } from '../components/cart-icon';
 import { ChatIcon } from '../components/chat-icon';
-import { ProductFilters } from '../product-filters';
 import { useCheckoutContext } from '../../checkout/context';
-import { ProductFiltersResult } from '../product-filters-result';
 
 // ----------------------------------------------------------------------
 
-export function ProductShopView({ products, loading }) {
+export const PRICE_OPTIONS = [
+  { label: 'Tất cả', value: { min: 0, max: 999999999 } },
+  { label: '0đ - 150.000đ', value: { min: 0, max: 150000 } },
+  { label: '150.000đ - 300.000đ', value: { min: 150000, max: 300000 } },
+  { label: '300.000đ - 500.000đ', value: { min: 300000, max: 500000 } },
+  { label: '500.000đ - 700.000đ', value: { min: 500000, max: 700000 } },
+  { label: '700.000đ - Trở lên', value: { min: 700000, max: 999999999 } },
+];
+
+const RecursiveTreeItem = ({ item, allItems }) => {
+  const children = allItems?.filter(
+    (child) => child.parentProductTypeId === item.id,
+  );
+
+  return (
+    <TreeItem itemId={String(item.id)} label={item.displayName || ''}>
+      {children?.length > 0 &&
+        children.map((childItem) => (
+          <RecursiveTreeItem
+            key={childItem.id}
+            item={childItem}
+            allItems={allItems}
+          />
+        ))}
+    </TreeItem>
+  );
+};
+
+export function ProductShopView() {
+  const dispatch = useDispatch();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const productTypeId = searchParams.get('productTypeId');
+  const pageNumber = searchParams.get('pageNumber') || 1;
+  const minPrice = searchParams.get('minPrice');
+  const maxPrice = searchParams.get('maxPrice');
+  const sortBy = searchParams.get('sortBy');
+  const sortDirection = searchParams.get('sortDirection');
+
   const { user } = useSelector(selectAuth);
+
+  const {
+    catalogPage: { products, tableFilters, loading, error, totalPages },
+  } = useSelector(selectProduct);
+
+  const {
+    productTypesFlatten,
+    catalogPage: { productTypeList, listAttributes },
+  } = useSelector(selectProductType);
+  // console.log('🚀 ~ ProductShopView ~ listAttributes:', listAttributes);
 
   const checkout = useCheckoutContext();
 
-  const openFilters = useBoolean();
+  const productsEmpty = (products.length === 0 && !loading) || error;
 
-  const [sortBy, setSortBy] = useState('featured');
+  const [expandedItems, setExpandedItems] = useState(['all']);
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const listBreadcrumbs = useMemo(
+    () => [
+      { name: 'Tất cả', href: '/products' },
+      ...productTypeList.map((item) => ({
+        name: item.displayName,
+        href: `/products?productTypeId=${item.id}`,
+      })),
+    ],
+    [productTypeList],
+  );
 
-  const debouncedQuery = useDebounce(searchQuery);
+  const handleSortBy = (newValue) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    switch (newValue) {
+      case 'CreationTime':
+        dispatch(
+          setCatalogTableFilters({
+            pageNumber: 1,
+            sortBy: newValue,
+            sortDirection: 'desc',
+          }),
+        );
+        newParams.set('sortBy', 'CreationTime');
+        newParams.set('sortDirection', 'desc');
+        break;
+      case 'NameDesc':
+        dispatch(
+          setCatalogTableFilters({
+            pageNumber: 1,
+            sortBy: 'Name',
+            sortDirection: 'desc',
+          }),
+        );
+        newParams.set('sortBy', 'Name');
+        newParams.set('sortDirection', 'desc');
+        break;
+      case 'NameAsc':
+        dispatch(
+          setCatalogTableFilters({
+            pageNumber: 1,
+            sortBy: 'Name',
+            sortDirection: 'asc',
+          }),
+        );
+        newParams.set('sortBy', 'Name');
+        newParams.set('sortDirection', 'asc');
+        break;
+      default: {
+        break;
+      }
+    }
+    newParams.set('pageNumber', 1);
+    setSearchParams(newParams);
+  };
 
-  const filters = useSetState({
-    gender: [],
-    colors: [],
-    rating: '',
-    category: 'all',
-    priceRange: [0, 200],
-  });
+  const handleSelectedTreeView = (event, itemIds) => {
+    if (itemIds !== 'all') {
+      const newParams = updateURLParams(searchParams, {
+        productTypeId: itemIds,
+        pageNumber: 1,
+      });
+      setSearchParams(newParams);
+    } else {
+      const newParams = updateURLParams(searchParams, { pageNumber: 1 }, [
+        'productTypeId',
+      ]);
+      setSearchParams(newParams);
+      setExpandedItems(['all']);
+    }
+  };
 
-  const { searchResults, searchLoading } = useSearchProducts(debouncedQuery);
+  const handlePageChange = (event, newPage) => {
+    dispatch(setCatalogTableFilters({ pageNumber: newPage }));
 
-  const dataFiltered = applyFilter({
-    inputData: products,
-    filters: filters.state,
-    sortBy,
-  });
+    const newParams = updateURLParams(searchParams, { pageNumber: newPage });
+    setSearchParams(newParams);
+  };
 
-  const canReset =
-    filters.state.gender.length > 0 ||
-    filters.state.colors.length > 0 ||
-    filters.state.rating !== '' ||
-    filters.state.category !== 'all' ||
-    filters.state.priceRange[0] !== 0 ||
-    filters.state.priceRange[1] !== 200;
+  const handlePriceFilterChange = (e, value) => {
+    const [min, max] = value.split(',').map((item) => Number(item));
 
-  const notFound = !dataFiltered.length && canReset;
+    const newParams = updateURLParams(searchParams, {
+      pageNumber: 1,
+      minPrice: min,
+      maxPrice: max,
+    });
+    setSearchParams(newParams);
 
-  const handleSortBy = useCallback((newValue) => {
-    setSortBy(newValue);
-  }, []);
+    dispatch(
+      setCatalogTableFilters({
+        pageNumber: 1,
+        minPrice: min,
+        maxPrice: max,
+      }),
+    );
+  };
 
-  const handleSearch = useCallback((inputValue) => {
-    setSearchQuery(inputValue);
-  }, []);
+  useEffect(() => {
+    setExpandedItems([
+      'all',
+      ...productTypeList.map((item) => String(item.id)),
+    ]);
+  }, [productTypeList]);
 
-  const productsEmpty = !loading && !products.length;
+  const isMounted = useRef(false);
+
+  useEffect(() => {
+    if (isMounted.current) {
+      dispatch(getProductsAsync(tableFilters));
+    } else {
+      isMounted.current = true;
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableFilters]);
+
+  const fetchData = useCallback(() => {
+    if (productTypeId !== null) {
+      dispatch(
+        getProductTypeByIdAsync({
+          id: productTypeId,
+          params: {
+            withParent: true,
+          },
+        }),
+      );
+
+      dispatch(getProductTypeAttributesAsync(productTypeId));
+
+      dispatch(
+        setCatalogTableFilters({
+          pageNumber: pageNumber ? Number(pageNumber) : 1,
+          productTypeIds: productTypeId,
+          sortBy,
+          sortDirection,
+          minPrice: minPrice ? Number(minPrice) : undefined,
+          maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        }),
+      );
+    } else {
+      dispatch(
+        setCatalogTableFilters({
+          pageNumber: pageNumber ? Number(pageNumber) : 1,
+          productTypeIds: undefined,
+          sortBy,
+          sortDirection,
+          minPrice: minPrice ? Number(minPrice) : undefined,
+          maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        }),
+      );
+      dispatch(resetProductTypeList());
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productTypeId]);
+
+  useEffect(() => {
+    fetchData();
+    dispatch(getProductTypesFlattenAsync());
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchData]);
 
   const renderFilters = (
     <Stack
@@ -91,30 +278,9 @@ export function ProductShopView({ products, loading }) {
       alignItems={{ xs: 'flex-end', sm: 'center' }}
       direction={{ xs: 'column', sm: 'row' }}
     >
-      <ProductSearch
-        query={debouncedQuery}
-        results={searchResults}
-        onSearch={handleSearch}
-        loading={searchLoading}
-      />
-
       <Stack direction="row" spacing={1} flexShrink={0}>
-        <ProductFilters
-          filters={filters}
-          canReset={canReset}
-          open={openFilters.value}
-          onOpen={openFilters.onTrue}
-          onClose={openFilters.onFalse}
-          options={{
-            colors: PRODUCT_COLOR_OPTIONS,
-            ratings: PRODUCT_RATING_OPTIONS,
-            genders: PRODUCT_GENDER_OPTIONS,
-            categories: ['all', ...PRODUCT_CATEGORY_OPTIONS],
-          }}
-        />
-
         <ProductSort
-          sort={sortBy}
+          sort={tableFilters.sortBy}
           onSort={handleSortBy}
           sortOptions={PRODUCT_SORT_OPTIONS}
         />
@@ -122,95 +288,142 @@ export function ProductShopView({ products, loading }) {
     </Stack>
   );
 
-  const renderResults = (
-    <ProductFiltersResult
-      filters={filters}
-      totalResults={dataFiltered.length}
+  const renderNotFound = (
+    <EmptyContent
+      sx={{ height: 'fit-content', py: 10 }}
+      title="Không tìm thấy dữ liệu"
     />
   );
-
-  const renderNotFound = <EmptyContent filled sx={{ py: 10 }} />;
 
   return (
     <Container sx={{ mb: 15 }}>
       <CartIcon totalItems={checkout.totalItems} />
-      {user && getUserRole() === 'Customer' && <ChatIcon />}
+      {user && <ChatIcon />}
 
-      <Typography variant="h4" sx={{ my: { xs: 3, md: 5 } }}>
-        Sản phẩm
-      </Typography>
+      <Stack
+        direction="row"
+        spacing={2.5}
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          my: { xs: 1, md: 3 },
+        }}
+      >
+        <CustomBreadcrumbs
+          links={[{ name: 'Trang chủ', href: '/' }, ...listBreadcrumbs]}
+        />
 
-      <Stack spacing={2.5} sx={{ mb: { xs: 3, md: 5 } }}>
         {renderFilters}
-
-        {canReset && renderResults}
       </Stack>
 
-      {(notFound || productsEmpty) && renderNotFound}
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={3}>
+          <Card sx={{ height: 'fit-content', p: 2 }}>
+            <Stack spacing={1} divider={<Divider />}>
+              {/* CATEGORY */}
+              <Box key="category" display="flex" flexDirection="column">
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Danh mục sản phẩm
+                </Typography>
 
-      <ProductList products={dataFiltered} loading={loading} />
+                <SimpleTreeView
+                  sx={{ overflowX: 'hidden', width: 1 }}
+                  selectedItems={[productTypeId || 'all']}
+                  onSelectedItemsChange={handleSelectedTreeView}
+                  expandedItems={['all', ...expandedItems]}
+                  expansionTrigger="iconContainer"
+                  slotProps={{
+                    collapseIcon: {
+                      sx: { display: 'none' },
+                    },
+                  }}
+                >
+                  <TreeItem itemId="all" label="Tất cả">
+                    {productTypesFlatten
+                      ?.filter(
+                        (productType) => !productType.parentProductTypeId,
+                      )
+                      .map((productType) => (
+                        <RecursiveTreeItem
+                          key={productType.id}
+                          item={productType}
+                          allItems={productTypesFlatten}
+                        />
+                      ))}
+                  </TreeItem>
+                </SimpleTreeView>
+              </Box>
+
+              {/* PRICE */}
+              <Box key="price" display="flex" flexDirection="column">
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Giá
+                </Typography>
+
+                <RadioGroup
+                  value={`${tableFilters.minPrice},${tableFilters.maxPrice}`}
+                  onChange={handlePriceFilterChange}
+                >
+                  {PRICE_OPTIONS.map((option, index) => (
+                    <FormControlLabel
+                      key={`${option.value.min}-${index}`}
+                      value={`${option.value.min},${option.value.max}`}
+                      control={<Radio size="small" />}
+                      label={option.label}
+                    />
+                  ))}
+                </RadioGroup>
+              </Box>
+
+              {/* ATTRIBUTE */}
+              {listAttributes.map((attribute) => (
+                <Box key={attribute.id} display="flex" flexDirection="column">
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    {attribute?.name}
+                  </Typography>
+
+                  <Autocomplete
+                    sx={{ mb: 1 }}
+                    fullWidth
+                    multiple
+                    limitTags={3}
+                    options={attribute?.values || []}
+                    getOptionLabel={(option) => option.value}
+                    renderInput={(params) => <TextField {...params} />}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.value}>
+                        {option.value}
+                      </li>
+                    )}
+                    renderTags={(selected, getTagProps) =>
+                      selected.map((option, index) => (
+                        <Chip
+                          {...getTagProps({ index })}
+                          key={option.value}
+                          label={option.value}
+                          size="small"
+                          variant="soft"
+                        />
+                      ))
+                    }
+                  />
+                </Box>
+              ))}
+            </Stack>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={9}>
+          <ProductList
+            products={products}
+            loading={loading}
+            pageNumber={tableFilters.pageNumber}
+            count={totalPages}
+            onPageChange={handlePageChange}
+          />
+
+          {productsEmpty && renderNotFound}
+        </Grid>
+      </Grid>
     </Container>
   );
-}
-
-function applyFilter({ inputData, filters, sortBy }) {
-  const { gender, category, colors, priceRange, rating } = filters;
-
-  const min = priceRange[0];
-
-  const max = priceRange[1];
-
-  // Sort by
-  if (sortBy === 'featured') {
-    inputData = orderBy(inputData, ['totalSold'], ['desc']);
-  }
-
-  if (sortBy === 'newest') {
-    inputData = orderBy(inputData, ['createdAt'], ['desc']);
-  }
-
-  if (sortBy === 'priceDesc') {
-    inputData = orderBy(inputData, ['price'], ['desc']);
-  }
-
-  if (sortBy === 'priceAsc') {
-    inputData = orderBy(inputData, ['price'], ['asc']);
-  }
-
-  // filters
-  if (gender.length) {
-    inputData = inputData.filter((product) =>
-      product.gender.some((i) => gender.includes(i)),
-    );
-  }
-
-  if (category !== 'all') {
-    inputData = inputData.filter((product) => product.category === category);
-  }
-
-  if (colors.length) {
-    inputData = inputData.filter((product) =>
-      product.colors.some((color) => colors.includes(color)),
-    );
-  }
-
-  if (min !== 0 || max !== 200) {
-    inputData = inputData.filter(
-      (product) => product.price >= min && product.price <= max,
-    );
-  }
-
-  if (rating) {
-    inputData = inputData.filter((product) => {
-      const convertRating = (value) => {
-        if (value === 'up4Star') return 4;
-        if (value === 'up3Star') return 3;
-        if (value === 'up2Star') return 2;
-        return 1;
-      };
-      return product.totalRatings > convertRating(rating);
-    });
-  }
-
-  return inputData;
 }

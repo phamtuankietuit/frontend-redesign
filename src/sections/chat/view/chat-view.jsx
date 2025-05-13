@@ -5,16 +5,12 @@ import { useSearchParams } from 'src/routes/hooks';
 
 import { CONFIG } from 'src/config-global';
 import { selectAuth } from 'src/state/auth/auth.slice';
+import { selectChat } from 'src/state/chat/chat.slice';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   getAllUsers,
   getConversationsAsync,
 } from 'src/services/chat/chat.service';
-import {
-  selectChat,
-  setAdminContact,
-  setAdminContacts,
-} from 'src/state/chat/chat.slice';
 
 import { EmptyContent } from 'src/components/empty-content';
 
@@ -98,10 +94,10 @@ export function ChatView() {
           );
 
           if (newContact) {
-            dispatch(setAdminContact(newContact));
+            // dispatch(setAdminContact(newContact));
           }
 
-          dispatch(setAdminContacts(newContacts ?? []));
+          // dispatch(setAdminContacts(newContacts ?? []));
         });
       });
   }, [user, dispatch, selectedConversationId]);

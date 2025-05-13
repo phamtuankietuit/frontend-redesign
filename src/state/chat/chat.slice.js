@@ -1,109 +1,80 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// import { socket } from "src/hooks/use-socket";
-
 import {
-  getAllUsers,
-  sendAdminMessageAsync,
-  getConversationsAsync,
-  createConversationAsync,
-  getConversationByIdAsync,
-  sendCustomerMessageAsync
+  getMessagesAsync,
+  createMessageAsync,
+  getConversationAsync,
+  updateConversationReadAsync,
 } from "src/services/chat/chat.service";
 
 const initialState = {
-  admin: {
-    contacts: [],
-    contact: {
-      id: '',
-    },
-    conversation: {},
-    messages: [],
-    lastMessage: {},
-    chatMessageList: {
-      loading: true,
-    }
+  conversation: {},
+  messages: [],
+  tableFiltersMessages: {
+    pageNumber: 1,
+    pageSize: 20,
   },
-  customer: {
-    messages: [],
-    conversation: {},
-    hasNewMessage: false,
-  }
+  loading: false,
+  totalPages: 0,
+  addTop: false,
+  mIsEnd: false,
 };
 
 const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    setAdminContacts: (state, action) => {
-      state.admin.contacts = action.payload;
+    setTableFiltersMessages: (state, action) => {
+      state.tableFiltersMessages = {
+        ...state.tableFiltersMessages,
+        ...action.payload,
+      };
     },
-    setAdminContact: (state, action) => {
-      state.admin.contact = action.payload;
-      state.admin.lastMessage = action.payload.lastMessage;
+    addNewMessageSocket: (state, action) => {
+      state.messages.push(action.payload);
     },
-    addAdminMessage: (state, action) => {
-      state.admin.messages.push(action.payload);
-      state.admin.lastMessage = action.payload;
-    },
-    addCustomerMessage: (state, action) => {
-      state.customer.messages.push(action.payload);
-    },
+    increaseUnreadCount: (state) => {
+      state.conversation.unreadCount += 1;
+    }
   },
   extraReducers: (builder) => {
     builder
-      .addCase(sendAdminMessageAsync.fulfilled, (state, action) => {
-        state.admin.messages.push(action.payload);
-        state.admin.lastMessage = action.payload;
+      // getConversationAsync
+      .addCase(getConversationAsync.fulfilled, (state, action) => {
+        state.conversation = action.payload;
+      })
 
-        const contactIndex =
-          state.admin.contacts.findIndex(contact =>
-            contact.conversation._id === action.payload.conversationId);
+      // getMessagesAsync
+      .addCase(getMessagesAsync.pending, (state) => {
+        state.loading = true;
+      }).addCase(getMessagesAsync.fulfilled, (state, action) => {
+        state.messages.unshift(...action.payload.messages);
+        state.loading = false;
 
-        if (contactIndex !== -1) {
-          const [contact] = state.admin.contacts.splice(contactIndex, 1);
-          state.admin.contacts.unshift(contact);
+        state.addTop = !state.addTop;
+
+        if (action.payload.messages.length === 0) {
+          state.mIsEnd = true;
         }
-
-        const to = state.admin.conversation
-          ?.participants
-          ?.filter(
-            participant => participant !== action.payload.senderId);
-
-        // socket.emit('send-msg', { to, msg: action.payload });
       })
-      .addCase(sendCustomerMessageAsync.fulfilled, (state, action) => {
-        state.customer.messages.push(action.payload);
 
-        const to = state.customer.conversation
-          ?.participants
-          ?.filter(
-            participant => participant !== action.payload.senderId);
 
-        // socket.emit('send-msg', { to, msg: action.payload });
+      // createMessageAsync
+      .addCase(createMessageAsync.fulfilled, (state, action) => {
+        state.messages.push(action.payload);
       })
-      .addCase(getConversationsAsync.fulfilled, (state, action) => {
 
+      // updateConversationReadAsync
+      .addCase(updateConversationReadAsync.fulfilled, (state, action) => {
+        if (state.conversation) {
+          state.conversation.unreadCount = 0;
+        }
       })
-      .addCase(createConversationAsync.fulfilled, (state, action) => {
-
-      })
-      .addCase(getAllUsers.fulfilled, (state, action) => {
-
-      })
-      .addCase(getConversationByIdAsync.fulfilled, (state, action) => {
-        state.admin.conversation = action.payload.conversation;
-        state.admin.messages = action.payload.messages;
-        state.admin.lastMessage = action.payload.messages[action.payload.messages.length - 1];
-        state.admin.chatMessageList.loading = false;
-
-        state.customer.conversation = action.payload.conversation;
-        state.customer.messages = action.payload.messages;
-      });
+      ;
   },
 });
 
-export const { setAdminContacts, setAdminContact, addCustomerMessage, addAdminMessage } = chatSlice.actions;
+export const { setTableFiltersMessages, addNewMessageSocket, increaseUnreadCount } = chatSlice.actions;
 
 export const selectChat = (state) => state.chat;
 

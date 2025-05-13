@@ -1,31 +1,51 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { getProductTypeAttributesAsync } from "src/services/product-type/product-type.service";
-import { getProductAsync, createProductAsync, getProductRatingsAsync, getProductOptionsAsync } from "src/services/product/product.service";
+import { getProductTypeByIdAsync } from "src/services/product-type/product-type.service";
+import { getProductAsync, getProductsAsync, getProductOptionsAsync, getProductRatingsAsync } from "src/services/product/product.service";
 
 const initialState = {
     product: null,
-    ratings: null,
     productError: null,
-    products: null,
-    createUpdateProductPage: {
-        attributes: [],
-        variants: [],
-        variantsRender: [],
+    ratings: null,
+    productTypes: [],
+    productTypesBreadcrumb: [],
+    productOptions: [],
+    // 
+    catalogPage: {
+        products: [],
+        loading: false,
+        error: null,
+        tableFilters: {
+            pageNumber: 1,
+            pageSize: 30,
+            productTypeIds: undefined,
+            sortBy: undefined,
+            sortDirection: undefined,
+            minPrice: 0,
+            maxPrice: 999999999,
+        },
+        totalPages: 0,
     },
-    updateProductPage: {
-        product: null,
-    }
 };
 
 const productSlice = createSlice({
     name: 'product',
     initialState,
+    reducers: {
+        resetCatalogTableFilters: (state) => {
+            state.catalogPage.tableFilters = initialState.catalogPage.tableFilters;
+        },
+        setCatalogTableFilters: (state, action) => {
+            state.catalogPage.tableFilters = {
+                ...state.catalogPage.tableFilters,
+                ...action.payload,
+            };
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getProductAsync.fulfilled, (state, action) => {
                 state.product = action.payload;
-                state.updateProductPage.product = action.payload;
             })
             .addCase(getProductAsync.rejected, (state, action) => {
                 state.productError = action.error;
@@ -36,22 +56,38 @@ const productSlice = createSlice({
             .addCase(getProductRatingsAsync.rejected, (state, action) => {
                 state.productError = action.error;
             })
-            .addCase(createProductAsync.fulfilled, (state, action) => {
-                state.updateProductPage.product = action.payload;
-            })
-            .addCase(getProductTypeAttributesAsync.fulfilled, (state, action) => {
-                state.createUpdateProductPage.attributes = action.payload;
+            .addCase(getProductTypeByIdAsync.fulfilled, (state, action) => {
+                state.productTypes = action.payload;
+                state.productTypesBreadcrumb = action.payload.map((item) => ({
+                    name: item.displayName,
+                    href: `/products?productTypeId=${item.id}`,
+                }));
             })
             .addCase(getProductOptionsAsync.fulfilled, (state, action) => {
-                state.createUpdateProductPage.variants = action.payload.items;
-                state.createUpdateProductPage.variantsRender =
-                    action.payload.items.map((item) => ({
-                        ...item,
-                        values: item.values.map((value) => value.value),
-                    }));
+                state.productOptions = action.payload;
+            })
+            .addCase(getProductsAsync.pending, (state) => {
+                state.catalogPage.products = [];
+                state.catalogPage.loading = true;
+                state.catalogPage.error = null;
+                state.catalogPage.totalPages = 0;
+            })
+            .addCase(getProductsAsync.fulfilled, (state, action) => {
+                state.catalogPage.products = action.payload.items;
+                state.catalogPage.loading = false;
+                state.catalogPage.error = null;
+                state.catalogPage.totalPages = action.payload.totalPages;
+            })
+            .addCase(getProductsAsync.rejected, (state, action) => {
+                state.catalogPage.products = [];
+                state.catalogPage.loading = false;
+                state.catalogPage.error = action.error;
+                state.catalogPage.totalPages = 0;
             });
     },
 });
+
+export const { setCatalogTableFilters, resetCatalogTableFilters } = productSlice.actions;
 
 export const selectProduct = (state) => state.product;
 

@@ -12,10 +12,10 @@ import { selectAuth } from 'src/state/auth/auth.slice';
 
 // ----------------------------------------------------------------------
 
-export function CustomerChatMessageItem({ message, hasImage, onOpenLightbox }) {
+export function CustomerChatMessageItem({ message, onOpenLightbox }) {
   const { user } = useSelector(selectAuth);
 
-  const { body, createdAt, senderId } = message;
+  const { body, createdAt, customerId } = message;
 
   const renderInfo = (
     <Typography
@@ -24,10 +24,10 @@ export function CustomerChatMessageItem({ message, hasImage, onOpenLightbox }) {
       sx={{
         mb: 1,
         color: 'text.disabled',
-        ...(user.id.toString() !== senderId && { mr: 'auto' }),
+        ...(!customerId && { mr: 'auto' }),
       }}
     >
-      {user.id.toString() !== senderId && `KKBooks, `}
+      {!customerId && `KKBooks, `}
 
       {fToNow(createdAt)}
     </Typography>
@@ -42,14 +42,17 @@ export function CustomerChatMessageItem({ message, hasImage, onOpenLightbox }) {
         borderRadius: 1,
         typography: 'body2',
         bgcolor: 'background.neutral',
-        ...(user.id.toString() === senderId && {
+        ...(customerId && {
           color: 'grey.800',
           bgcolor: 'primary.lighter',
         }),
-        ...(hasImage && { p: 0, bgcolor: 'transparent' }),
+        ...(message?.contentType === 'image' && {
+          p: 0,
+          bgcolor: 'transparent',
+        }),
       }}
     >
-      {hasImage ? (
+      {message?.contentType === 'image' ? (
         <Box
           component="img"
           alt="attachment"
@@ -78,10 +81,10 @@ export function CustomerChatMessageItem({ message, hasImage, onOpenLightbox }) {
   return (
     <Stack
       direction="row"
-      justifyContent={user.id.toString() === senderId ? 'flex-end' : 'unset'}
+      justifyContent={customerId ? 'flex-end' : 'unset'}
       sx={{ mb: 5 }}
     >
-      {user.id.toString() !== senderId && (
+      {!customerId && (
         <Avatar
           alt="KKBooks"
           src={`${CONFIG.assetsDir}/logo/my-logo-single.svg`}
@@ -89,9 +92,7 @@ export function CustomerChatMessageItem({ message, hasImage, onOpenLightbox }) {
         />
       )}
 
-      <Stack
-        alignItems={user.id.toString() === senderId ? 'flex-end' : 'flex-start'}
-      >
+      <Stack alignItems={customerId ? 'flex-end' : 'flex-start'}>
         {renderInfo}
 
         <Stack

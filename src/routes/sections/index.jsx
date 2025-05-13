@@ -12,7 +12,7 @@ import { dashboardRoutes } from './dashboard';
 
 // ----------------------------------------------------------------------
 
-const HomePage = lazy(() => import('src/pages/home'));
+const HomePage = lazy(() => import('src/pages/my-home'));
 
 export function Router() {
   return useRoutes([
@@ -31,18 +31,8 @@ export function Router() {
       ),
     },
 
-    // Auth
-    // ...authRoutes,
-    // ...authDemoRoutes,
-
     // Dashboard
     ...dashboardRoutes,
-
-    // Main
-    // ...mainRoutes,
-
-    // Components
-    // ...componentsRoutes,
 
     // My Auth
     ...myAuthRoutes,

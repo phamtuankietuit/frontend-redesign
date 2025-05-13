@@ -56,12 +56,47 @@ export const _appInvoices = [...Array(5)].map((_, index) => {
   };
 });
 
-export const _appFeatured = [...Array(3)].map((_, index) => ({
-  id: _mock.id(index + 3),
-  title: _mock.postTitle(index + 3),
-  description: _mock.sentence(index + 3),
-  coverUrl: _mock.image.cover(index + 3),
-}));
+
+
+
+export const _appFeaturedMini2 = [
+  {
+    id: 0,
+    title: 'DEAL ĐỘC QUYỀN TỪ KKBOOKS',
+    description: '21/03/2023 - 21/04/2023',
+    coverUrl: 'https://cdn1.fahasa.com/media/wysiwyg/Thang-04-2025/homecreditT4_392x156.png',
+  },
+];
+
+export const _appFeaturedMini = [
+  {
+    id: 0,
+    title: 'DEAL ĐỘC QUYỀN TỪ KKBOOKS',
+    description: '21/03/2023 - 21/04/2023',
+    coverUrl: 'https://cdn1.fahasa.com/media/wysiwyg/Thang-04-2025/ShopeeT4_392x156.png',
+  },
+];
+
+export const _appFeatured = [
+  {
+    id: 0,
+    title: 'DEAL ĐỘC QUYỀN TỪ KKBOOKS',
+    description: '21/03/2023 - 21/04/2023',
+    coverUrl: 'https://cdn1.fahasa.com/media/magentothem/banner7/LichSuVanHoa_Resize_840x320.png',
+  },
+  {
+    id: 1,
+    title: 'THÁNG 4 RỰC RỠ SĂN SALE HẾT CỠ',
+    description: '01/04/2025 - 30/04/2025',
+    coverUrl: 'https://cdn1.fahasa.com/media/magentothem/banner7/mcbookT4_840x320.png',
+  },
+  {
+    id: 2,
+    title: 'THÁNG TỰ HÀO LỊCH SỬ VIỆT NAM',
+    description: '02/04/2025 - 02/05/2025',
+    coverUrl: 'https://cdn1.fahasa.com/media/magentothem/banner7/sbooksT4_840x320.png',
+  },
+];
 
 // ANALYTIC
 // ----------------------------------------------------------------------
@@ -130,20 +165,17 @@ export const _ecommerceSalesOverview = ['Total profit', 'Total income', 'Total e
   })
 );
 
-export const _ecommerceBestSalesman = [...Array(5)].map((_, index) => {
-  const category = ['CAP', 'Branded shoes', 'Headphone', 'Cell phone', 'Earings'][index];
-
-  return {
-    id: _mock.id(index),
-    category,
-    rank: `Top ${index + 1}`,
-    email: _mock.email(index),
-    name: _mock.fullName(index),
-    totalAmount: _mock.number.price(index),
-    avatarUrl: _mock.image.avatar(index + 8),
-    countryCode: ['de', 'gb', 'fr', 'kr', 'us'][index],
-  };
-});
+export const _ecommerceBestSalesman = [...Array(5)].map((_, index) => ({
+  id: _mock.id(index),
+  rank: `Top ${index + 1}`,
+  name: 'Đất nước gấm hoa',
+  rating: 4.5,
+  totalRatings: 192,
+  unitPrice: 130000,
+  recommendedRetailPrice: 100000,
+  sales: 32000,
+  imageUrl: 'https://cdn1.fahasa.com/media/catalog/product/8/9/8935244873306.jpg',
+}));
 
 export const _ecommerceLatestProducts = [...Array(5)].map((_, index) => {
   const colors = (index === 0 && ['#2EC4B6', '#E71D36', '#FF9F1C', '#011627']) ||

@@ -40,11 +40,7 @@ import { NotificationsDrawer } from '../components/notifications-drawer';
 export function MainLayout({ sx, data, children, header }) {
   const theme = useTheme();
 
-  const pathname = usePathname();
-
   const mobileNavOpen = useBoolean();
-
-  const homePage = pathname === '/';
 
   const layoutQuery = 'sm';
 
@@ -146,14 +142,10 @@ export function MainLayout({ sx, data, children, header }) {
                 alignItems="center"
                 gap={{ xs: 0, sm: 0.75, md: 1.25 }}
               >
-                {user && getUserRole() === 'Customer' && (
-                  <NotificationsDrawer data={_notifications} />
-                )}
+                {user && <NotificationsDrawer data={_notifications} />}
                 <SettingsButton />
-                {(!user || getUserRole() === 'Admin') && <SignInButton />}
-                {user && getUserRole() === 'Customer' && (
-                  <AccountDrawer data={_account} />
-                )}
+                {!user && <SignInButton />}
+                {user && <AccountDrawer data={_account} />}
               </Box>
             ),
           }}
@@ -162,9 +154,7 @@ export function MainLayout({ sx, data, children, header }) {
       /** **************************************
        * Footer
        *************************************** */
-      footerSection={
-        homePage ? <HomeFooter /> : <Footer layoutQuery={layoutQuery} />
-      }
+      footerSection={<Footer layoutQuery={layoutQuery} />}
       /** **************************************
        * Style
        *************************************** */

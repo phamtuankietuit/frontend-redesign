@@ -7,7 +7,11 @@ import IconButton from '@mui/material/IconButton';
 
 import { selectAuth } from 'src/state/auth/auth.slice';
 import { selectChat } from 'src/state/chat/chat.slice';
-import { sendCustomerMessageAsync } from 'src/services/chat/chat.service';
+import { uploadImagesAsync } from 'src/services/file/file.service';
+import {
+  getMessagesAsync,
+  createMessageAsync,
+} from 'src/services/chat/chat.service';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -18,9 +22,7 @@ export function CustomerChatMessageInput({ disabled }) {
 
   const { user } = useSelector(selectAuth);
 
-  const { customer } = useSelector(selectChat);
-
-  const { conversation } = customer;
+  const { conversation, tableFiltersMessages } = useSelector(selectChat);
 
   const fileRef = useRef(null);
 
@@ -41,13 +43,13 @@ export function CustomerChatMessageInput({ disabled }) {
       if (event.key !== 'Enter' || !message) return;
 
       try {
-        dispatch(
-          sendCustomerMessageAsync({
+        await dispatch(
+          createMessageAsync({
+            conversationId: conversation.id,
+            customerId: user.id,
             body: message,
-            senderId: user.id.toString(),
-            conversationId: conversation._id,
           }),
-        );
+        ).unwrap();
       } catch (error) {
         console.error(error);
       } finally {
@@ -57,6 +59,31 @@ export function CustomerChatMessageInput({ disabled }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [message, conversation._id, dispatch],
   );
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await dispatch(uploadImagesAsync([file]))
+        .unwrap()
+        .then((urls) => {
+          dispatch(
+            createMessageAsync({
+              conversationId: conversation.id,
+              contentType: 'image',
+              customerId: user.id,
+              body: urls[0],
+            }),
+          ).then(() => {
+            dispatch(
+              getMessagesAsync({
+                conversationId: conversation.id,
+                ...tableFiltersMessages,
+              }),
+            );
+          });
+        });
+    }
+  };
 
   return (
     <>
@@ -88,7 +115,12 @@ export function CustomerChatMessageInput({ disabled }) {
         }}
       />
 
-      <input type="file" ref={fileRef} style={{ display: 'none' }} />
+      <input
+        type="file"
+        ref={fileRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
     </>
   );
 }

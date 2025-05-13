@@ -17,7 +17,7 @@ const initialState = {
         error: null,
         tableFilters: {
             pageNumber: 1,
-            pageSize: 10,
+            pageSize: 30,
             productTypeIds: undefined,
             sortBy: undefined,
             sortDirection: undefined,

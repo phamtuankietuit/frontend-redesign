@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
@@ -23,12 +23,16 @@ import {
 import { updateURLParams } from 'src/utils/params-helper';
 
 import { PRODUCT_SORT_OPTIONS } from 'src/_mock';
+import { selectAuth } from 'src/state/auth/auth.slice';
 import { getProductsAsync } from 'src/services/product/product.service';
-import { selectProductType } from 'src/state/product-type/product-type.slice';
 import {
   selectProduct,
   setCatalogTableFilters,
 } from 'src/state/product/product.slice';
+import {
+  selectProductType,
+  resetProductTypeList,
+} from 'src/state/product-type/product-type.slice';
 import {
   getProductTypeByIdAsync,
   getProductTypesFlattenAsync,
@@ -41,6 +45,7 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { ProductList } from '../product-list';
 import { ProductSort } from '../product-sort';
 import { CartIcon } from '../components/cart-icon';
+import { ChatIcon } from '../components/chat-icon';
 import { useCheckoutContext } from '../../checkout/context';
 
 // ----------------------------------------------------------------------
@@ -85,7 +90,7 @@ export function ProductShopView() {
   const sortBy = searchParams.get('sortBy');
   const sortDirection = searchParams.get('sortDirection');
 
-  // const { user } = useSelector(selectAuth);
+  const { user } = useSelector(selectAuth);
 
   const {
     catalogPage: { products, tableFilters, loading, error, totalPages },
@@ -95,7 +100,7 @@ export function ProductShopView() {
     productTypesFlatten,
     catalogPage: { productTypeList, listAttributes },
   } = useSelector(selectProductType);
-  console.log('🚀 ~ ProductShopView ~ listAttributes:', listAttributes);
+  // console.log('🚀 ~ ProductShopView ~ listAttributes:', listAttributes);
 
   const checkout = useCheckoutContext();
 
@@ -160,14 +165,12 @@ export function ProductShopView() {
 
   const handleSelectedTreeView = (event, itemIds) => {
     if (itemIds !== 'all') {
-      // Sử dụng hàm tiện ích updateURLParams
       const newParams = updateURLParams(searchParams, {
         productTypeId: itemIds,
         pageNumber: 1,
       });
       setSearchParams(newParams);
     } else {
-      // Sử dụng hàm tiện ích updateURLParams
       const newParams = updateURLParams(searchParams, { pageNumber: 1 }, [
         'productTypeId',
       ]);
@@ -186,7 +189,6 @@ export function ProductShopView() {
   const handlePriceFilterChange = (e, value) => {
     const [min, max] = value.split(',').map((item) => Number(item));
 
-    // Sử dụng hàm tiện ích updateURLParams
     const newParams = updateURLParams(searchParams, {
       pageNumber: 1,
       minPrice: min,
@@ -210,8 +212,14 @@ export function ProductShopView() {
     ]);
   }, [productTypeList]);
 
+  const isMounted = useRef(false);
+
   useEffect(() => {
-    dispatch(getProductsAsync(tableFilters));
+    if (isMounted.current) {
+      dispatch(getProductsAsync(tableFilters));
+    } else {
+      isMounted.current = true;
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableFilters]);
@@ -250,6 +258,7 @@ export function ProductShopView() {
           maxPrice: maxPrice ? Number(maxPrice) : undefined,
         }),
       );
+      dispatch(resetProductTypeList());
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -289,7 +298,7 @@ export function ProductShopView() {
   return (
     <Container sx={{ mb: 15 }}>
       <CartIcon totalItems={checkout.totalItems} />
-      {/* {user && <ChatIcon />} */}
+      {user && <ChatIcon />}
 
       <Stack
         direction="row"

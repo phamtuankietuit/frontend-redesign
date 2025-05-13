@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { GET } from "../axios";
-import { CHAT_GET, CHAT_POST } from "../chat-axios";
+import { CHAT_GET, CHAT_PUT, CHAT_POST } from "../chat-axios";
 
 export const sendAdminMessageAsync = createAsyncThunk(
   'chat/sendAdminMessageAsync',
@@ -21,14 +21,14 @@ export const sendCustomerMessageAsync = createAsyncThunk(
   }
 );
 
-export const getMessagesAsync = createAsyncThunk(
-  'chat/getMessagesAsync',
-  async (msg) => {
-    const response = await CHAT_GET(`/messages/getmsg`, msg);
+// export const getMessagesAsync = createAsyncThunk(
+//   'chat/getMessagesAsync',
+//   async (msg) => {
+//     const response = await CHAT_GET(`/messages/getmsg`, msg);
 
-    return response.data;
-  }
-);
+//     return response.data;
+//   }
+// );
 
 export const getConversationsAsync = createAsyncThunk(
   'chat/getConversationsAsync',
@@ -45,6 +45,42 @@ export const createConversationAsync = createAsyncThunk(
     const response = await CHAT_POST(`/conversations`, body);
 
     return response.data;
+  }
+);
+
+export const getConversationAsync = createAsyncThunk(
+  'chat/getConversationAsync',
+  async (customerId) => {
+    const response = await CHAT_GET(`/conversations/customer/${customerId}`);
+
+    return response.data.data;
+  }
+);
+
+export const getMessagesAsync = createAsyncThunk(
+  'chat/getMessagesAsync',
+  async (params) => {
+    const response = await CHAT_GET(`/messages`, { params });
+
+    return response.data.data;
+  }
+);
+
+export const createMessageAsync = createAsyncThunk(
+  'chat/createMessageAsync',
+  async (body) => {
+    const response = await CHAT_POST(`/messages`, body);
+
+    return response.data.data.message;
+  }
+);
+
+export const updateConversationReadAsync = createAsyncThunk(
+  'chat/updateConversationReadAsync',
+  async (body) => {
+    const response = await CHAT_PUT(`/conversation-reads`, body);
+
+    return response.data.data;
   }
 );
 

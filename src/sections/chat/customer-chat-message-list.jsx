@@ -1,11 +1,13 @@
 import { useDispatch, useSelector } from 'react-redux';
 
-import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
 
 // import { socket } from 'src/hooks/use-socket';
 
-import { selectChat } from 'src/state/chat/chat.slice';
+import { useEffect } from 'react';
+
+import { getMessagesAsync } from 'src/services/chat/chat.service';
+import { selectChat, setTableFiltersMessages } from 'src/state/chat/chat.slice';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import { Lightbox, useLightBox } from 'src/components/lightbox';
@@ -16,11 +18,16 @@ import { CustomerChatMessageItem } from './customer-chat-message-item';
 // ----------------------------------------------------------------------
 
 export function CustomerChatMessageList() {
-  const { customer } = useSelector(selectChat);
+  const {
+    conversation,
+    messages,
+    tableFiltersMessages,
+    loading,
+    totalPages,
+    mIsEnd,
+  } = useSelector(selectChat);
 
-  const { messages, conversation } = customer;
-
-  const { messagesEndRef } = useMessagesScroll(messages);
+  const { messagesRef, isAtTop } = useMessagesScroll(messages);
 
   const dispatch = useDispatch();
 
@@ -30,44 +37,52 @@ export function CustomerChatMessageList() {
 
   const lightbox = useLightBox(slides);
 
-  // useEffect(() => {
-  //   if (!conversation) return;
+  useEffect(() => {
+    if (isAtTop && messages.length > 0 && !mIsEnd) {
+      dispatch(
+        setTableFiltersMessages({
+          fromId: messages[0].id,
+        }),
+      );
+    }
 
-  //   socket.on('msg-receive', (message) => {
-  //     dispatch(addCustomerMessage(message));
-  //   });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAtTop]);
 
-  //   // eslint-disable-next-line consistent-return
-  //   return () => {
-  //     socket.off('msg-receive');
-  //   };
-  // }, [conversation, dispatch]);
-
-  if (!conversation) {
-    return (
-      <Stack sx={{ flex: '1 1 auto', position: 'relative' }}>
-        <LinearProgress
-          color="inherit"
-          sx={{
-            top: 0,
-            left: 0,
-            width: 1,
-            height: 2,
-            borderRadius: 0,
-            position: 'absolute',
-          }}
-        />
-      </Stack>
-    );
-  }
+  useEffect(() => {
+    if (conversation?.id) {
+      dispatch(
+        getMessagesAsync({
+          conversationId: conversation.id,
+          ...tableFiltersMessages,
+        }),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation, tableFiltersMessages]);
 
   return (
     <>
       <Scrollbar
         key={conversation._id}
-        ref={messagesEndRef}
+        ref={messagesRef}
         sx={{ px: 3, pt: 5, pb: 3, flex: '1 1 auto' }}
       >
+        {(isAtTop || loading) &&
+          tableFiltersMessages.pageNumber < totalPages && (
+            <LinearProgress
+              color="primary"
+              sx={{
+                top: 0,
+                left: 0,
+                width: 1,
+                height: 2,
+                borderRadius: 0,
+                position: 'absolute',
+              }}
+            />
+          )}
+
         {messages.map((message, index) => (
           <CustomerChatMessageItem
             key={`${message.id}-${index}`}

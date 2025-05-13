@@ -16,7 +16,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 
 import { fToNow } from 'src/utils/format-time';
 
-import { selectChat, setAdminContact } from 'src/state/chat/chat.slice';
+import { selectChat } from 'src/state/chat/chat.slice';
 
 // ----------------------------------------------------------------------
 
@@ -55,22 +55,14 @@ export function ChatNavItem({ selected, collapse, onCloseMobile, contact }) {
           onCloseMobile();
         }
 
-        dispatch(setAdminContact(contact));
+        // dispatch(setAdminContact(contact));
 
         router.push(`${paths.dashboard.chat}?id=${conversation._id}`);
       }
     } catch (error) {
       console.error(error);
     }
-  }, [
-    conversation._id,
-    mdUp,
-    onCloseMobile,
-    router,
-    contact,
-    dispatch,
-    selectedConversationId,
-  ]);
+  }, [conversation._id, mdUp, onCloseMobile, router, selectedConversationId]);
 
   const renderSingle = (
     <Badge

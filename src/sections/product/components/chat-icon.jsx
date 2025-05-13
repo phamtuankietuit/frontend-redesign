@@ -2,16 +2,21 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Box from '@mui/material/Box';
-import { Grow } from '@mui/material';
+import { Grow, Badge } from '@mui/material';
 
+import { useSocket } from 'src/hooks/use-socket';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { selectAuth } from 'src/state/auth/auth.slice';
-import { getMeAsync } from 'src/services/auth/auth.service';
 import {
-  getConversationsAsync,
-  getConversationByIdAsync,
+  getConversationAsync,
+  updateConversationReadAsync,
 } from 'src/services/chat/chat.service';
+import {
+  selectChat,
+  addNewMessageSocket,
+  increaseUnreadCount,
+} from 'src/state/chat/chat.slice';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -23,6 +28,14 @@ import { CustomerChatMessageInput } from 'src/sections/chat/customer-chat-messag
 // ----------------------------------------------------------------------
 
 export function ChatIcon() {
+  const dispatch = useDispatch();
+
+  const { user } = useSelector(selectAuth);
+
+  const { conversation, messages } = useSelector(selectChat);
+
+  const messageSocket = useSocket('message');
+
   const isOpen = useBoolean(false);
 
   const handleClose = () => {
@@ -31,27 +44,41 @@ export function ChatIcon() {
 
   const handleOpen = () => {
     isOpen.onTrue();
+
+    if (conversation) {
+      dispatch(
+        updateConversationReadAsync({
+          conversationReadId: conversation?.conversationReadId,
+          lastReadMessageId: messages[messages.length - 1]?.id,
+        }),
+      );
+    }
   };
 
-  const dispatch = useDispatch();
-
-  const { user } = useSelector(selectAuth);
+  useEffect(() => {
+    dispatch(getConversationAsync(user.id));
+  }, [user, dispatch]);
 
   useEffect(() => {
-    if (!user) {
-      dispatch(getMeAsync());
-      return;
+    if (messageSocket) {
+      if (messageSocket?.assignee?.id === user.id) {
+        dispatch(addNewMessageSocket(messageSocket));
+
+        if (isOpen.value) {
+          dispatch(
+            updateConversationReadAsync({
+              conversationReadId: conversation?.conversationReadId,
+              lastReadMessageId: messageSocket?.id,
+            }),
+          );
+        } else {
+          dispatch(increaseUnreadCount());
+        }
+      }
     }
 
-    dispatch(getConversationsAsync(user.id)).then((action) => {
-      if (
-        getConversationsAsync.fulfilled.match(action) &&
-        action.payload.length > 0
-      ) {
-        dispatch(getConversationByIdAsync(action.payload[0].conversation._id));
-      }
-    });
-  }, [user, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messageSocket]);
 
   return (
     <Box>
@@ -75,9 +102,13 @@ export function ChatIcon() {
             '&:hover': { opacity: 0.72 },
           }}
         >
-          {/* <Badge showZero badgeContent={1} color="error" max={99}> */}
-          <Iconify icon="solar:chat-line-bold" width={24} />
-          {/* </Badge> */}
+          <Badge
+            color="error"
+            overlap="rectangular"
+            badgeContent={conversation?.unreadCount}
+          >
+            <Iconify icon="solar:chat-line-bold" width={24} />
+          </Badge>
         </Box>
       </Grow>
 

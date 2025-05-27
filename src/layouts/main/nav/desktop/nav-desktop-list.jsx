@@ -113,6 +113,8 @@ export function NavList({ data }) {
                     ...paper({ theme, dropdown: true }),
                     borderRadius: 2,
                     p: 4,
+                    overflow: 'auto',
+                    maxHeight: 400,
                   }}
                 >
                   <NavUl

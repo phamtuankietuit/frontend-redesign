@@ -4,9 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import Stack from '@mui/material/Stack';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
+import { Chip, CircularProgress } from '@mui/material';
+
+import { useBoolean } from 'src/hooks/use-boolean';
 
 import { selectAuth } from 'src/state/auth/auth.slice';
 import { selectChat } from 'src/state/chat/chat.slice';
+import { getAccessToken } from 'src/services/token.service';
 import { uploadImagesAsync } from 'src/services/file/file.service';
 import {
   getMessagesAsync,
@@ -85,8 +89,58 @@ export function CustomerChatMessageInput({ disabled }) {
     }
   };
 
+  const branchAddressLoading = useBoolean(false);
+
+  const handleClickBranchAddress = useCallback(async () => {
+    const accessToken = getAccessToken();
+
+    if (accessToken) {
+      branchAddressLoading.onTrue();
+
+      await dispatch(
+        createMessageAsync({
+          conversationId: conversation.id,
+          customerId: user.id,
+          body: 'Địa chỉ các chi nhánh?',
+          isBranchAddressQuery: true,
+          token: accessToken,
+        }),
+      ).unwrap();
+
+      branchAddressLoading.onFalse();
+    }
+  }, [conversation.id, dispatch, user.id, branchAddressLoading]);
+
   return (
     <>
+      <Stack
+        direction="row"
+        sx={{
+          px: 1,
+          flexShrink: 0,
+          borderTop: (theme) => `solid 1px ${theme.vars.palette.divider}`,
+          overflowX: 'auto',
+          py: 1,
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        }}
+        alignItems="center"
+        spacing={1}
+      >
+        <Chip variant="soft" clickable label="Gửi sản phẩm đang xem?" />
+        <Chip
+          variant="soft"
+          clickable
+          label="Địa chỉ các chi nhánh?"
+          icon={
+            branchAddressLoading.value ? <CircularProgress size={14} /> : null
+          }
+          onClick={handleClickBranchAddress}
+        />
+      </Stack>
+
       <InputBase
         name="chat-message"
         id="chat-message-input"

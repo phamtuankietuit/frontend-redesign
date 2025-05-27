@@ -10,12 +10,14 @@ import { fToNow } from 'src/utils/format-time';
 import { CONFIG } from 'src/config-global';
 import { selectAuth } from 'src/state/auth/auth.slice';
 
+import { Markdown } from 'src/components/markdown';
+
 // ----------------------------------------------------------------------
 
 export function CustomerChatMessageItem({ message, onOpenLightbox }) {
   const { user } = useSelector(selectAuth);
 
-  const { body, createdAt, customerId } = message;
+  const { body, createdAt, customerId, markdown, contentType } = message;
 
   const renderInfo = (
     <Typography
@@ -52,25 +54,33 @@ export function CustomerChatMessageItem({ message, onOpenLightbox }) {
         }),
       }}
     >
-      {message?.contentType === 'image' ? (
-        <Box
-          component="img"
-          alt="attachment"
-          src={body}
-          onClick={() => onOpenLightbox(body)}
-          sx={{
-            width: 400,
-            height: 'auto',
-            borderRadius: 1.5,
-            cursor: 'pointer',
-            objectFit: 'cover',
-            aspectRatio: '16/11',
-            '&:hover': { opacity: 0.9 },
-          }}
-        />
-      ) : (
-        body
-      )}
+      {(() => {
+        if (contentType === 'image') {
+          return (
+            <Box
+              component="img"
+              alt="attachment"
+              src={body}
+              onClick={() => onOpenLightbox(body)}
+              sx={{
+                width: 400,
+                height: 'auto',
+                borderRadius: 1.5,
+                cursor: 'pointer',
+                objectFit: 'cover',
+                aspectRatio: '16/11',
+                '&:hover': { opacity: 0.9 },
+              }}
+            />
+          );
+        }
+
+        if (markdown) {
+          return <Markdown>{body}</Markdown>;
+        }
+
+        return body;
+      })()}
     </Stack>
   );
 

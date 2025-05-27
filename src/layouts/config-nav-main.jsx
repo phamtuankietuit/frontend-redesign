@@ -65,7 +65,7 @@ export const navData = [
 ];
 
 export const getConfigNavMain = (productTypes) => {
-  const children = productTypes.map((productType) => ({
+  const children = productTypes[0]?.childProductTypes?.map((productType) => ({
     subheader: productType.displayName,
     items: productType.childProductTypes.map((childProductType) => ({
       title: childProductType.displayName,

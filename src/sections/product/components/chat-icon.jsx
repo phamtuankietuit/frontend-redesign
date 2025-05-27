@@ -61,7 +61,10 @@ export function ChatIcon() {
 
   useEffect(() => {
     if (messageSocket) {
-      if (messageSocket?.assignee?.id === user.id) {
+      if (
+        messageSocket?.assignee?.id === user.id ||
+        messageSocket?.assignee?.id === 'auto-system'
+      ) {
         dispatch(addNewMessageSocket(messageSocket));
 
         if (isOpen.value) {

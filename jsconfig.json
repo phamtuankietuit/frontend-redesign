@@ -1,5 +1,15 @@
 {
   "compilerOptions": {
-    "baseUrl": "."
-  }
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "target": "es6",
+    "module": "esnext",
+    "moduleResolution": "node"
+  },
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "public"
+  ]
 }

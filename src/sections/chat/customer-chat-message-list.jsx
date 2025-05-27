@@ -1,10 +1,7 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import LinearProgress from '@mui/material/LinearProgress';
-
-// import { socket } from 'src/hooks/use-socket';
-
-import { useEffect } from 'react';
 
 import { getMessagesAsync } from 'src/services/chat/chat.service';
 import { selectChat, setTableFiltersMessages } from 'src/state/chat/chat.slice';

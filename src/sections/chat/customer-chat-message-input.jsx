@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Stack from '@mui/material/Stack';
@@ -18,6 +18,8 @@ import {
 } from 'src/services/chat/chat.service';
 
 import { Iconify } from 'src/components/iconify';
+import { usePathname } from 'src/routes/hooks';
+import { selectProduct } from 'src/state/product/product.slice';
 
 // ----------------------------------------------------------------------
 
@@ -25,6 +27,8 @@ export function CustomerChatMessageInput({ disabled }) {
   const dispatch = useDispatch();
 
   const { user } = useSelector(selectAuth);
+
+  const { product } = useSelector(selectProduct);
 
   const { conversation, tableFiltersMessages } = useSelector(selectChat);
 
@@ -111,6 +115,42 @@ export function CustomerChatMessageInput({ disabled }) {
     }
   }, [conversation.id, dispatch, user.id, branchAddressLoading]);
 
+  const scenarioProduct = useBoolean(false);
+
+  const pathName = usePathname();
+
+  useEffect(() => {
+    const productPagePattern = /^\/products\/[^/]+$/;
+    if (productPagePattern.test(pathName)) {
+      scenarioProduct.onTrue();
+    } else {
+      scenarioProduct.onFalse();
+    }
+  }, [pathName, scenarioProduct]);
+
+  const productLoading = useBoolean(false);
+
+  const handleClickProduct = useCallback(async () => {
+    const accessToken = getAccessToken();
+
+    if (accessToken) {
+      productLoading.onTrue();
+
+      await dispatch(
+        createMessageAsync({
+          conversationId: conversation.id,
+          customerId: user.id,
+          body: `Tôi muốn kiểm tra tồn kho sản phẩm: ${product.name || ''}`,
+          isProductQuery: true,
+          productId: product.id,
+          token: accessToken,
+        }),
+      ).unwrap();
+
+      productLoading.onFalse();
+    }
+  }, [conversation.id, dispatch, user.id, product, productLoading]);
+
   return (
     <>
       <Stack
@@ -129,7 +169,16 @@ export function CustomerChatMessageInput({ disabled }) {
         alignItems="center"
         spacing={1}
       >
-        <Chip variant="soft" clickable label="Gửi sản phẩm đang xem?" />
+        {scenarioProduct.value && (
+          <Chip
+            variant="soft"
+            clickable
+            label="Kiểm tra tồn kho sản phẩm này?"
+            icon={productLoading.value ? <CircularProgress size={14} /> : null}
+            onClick={handleClickProduct}
+          />
+        )}
+
         <Chip
           variant="soft"
           clickable

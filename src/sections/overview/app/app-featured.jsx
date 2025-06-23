@@ -10,6 +10,8 @@ import {
   CarouselDotButtons,
   CarouselArrowBasicButtons,
 } from 'src/components/carousel';
+import { useRouter } from 'src/routes/hooks';
+import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -45,15 +47,23 @@ export function AppFeatured({ list, sx, ...other }) {
 // ----------------------------------------------------------------------
 
 function CarouselItem({ item, ...other }) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(paths.campaign.root(item.id));
+  };
+
   return (
     <Box sx={{ width: 1, position: 'relative', ...other }}>
       <Image
         alt={item.title}
-        src={item.coverUrl}
+        src={item.imageUrl}
         sx={{
           width: 1,
           height: 1,
+          cursor: 'pointer',
         }}
+        onClick={handleClick}
       />
     </Box>
   );

@@ -9,3 +9,5 @@ export * from './product-create-view';
 export * from './product-details-view';
 
 export * from './product-shop-details-view';
+
+export * from './image-search-product-view';

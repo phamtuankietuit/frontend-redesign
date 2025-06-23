@@ -82,19 +82,13 @@ export const _appFeatured = [
     id: 0,
     title: 'DEAL ĐỘC QUYỀN TỪ KKBOOKS',
     description: '21/03/2023 - 21/04/2023',
-    coverUrl: 'https://cdn1.fahasa.com/media/magentothem/banner7/LichSuVanHoa_Resize_840x320.png',
+    coverUrl: 'https://uitbookstorestorage.blob.core.windows.net/images/kkbookstore_image__1749798094_dcfff1fb-3846-40f1-b254-5c3c9a81c3db',
   },
   {
     id: 1,
     title: 'THÁNG 4 RỰC RỠ SĂN SALE HẾT CỠ',
     description: '01/04/2025 - 30/04/2025',
-    coverUrl: 'https://cdn1.fahasa.com/media/magentothem/banner7/mcbookT4_840x320.png',
-  },
-  {
-    id: 2,
-    title: 'THÁNG TỰ HÀO LỊCH SỬ VIỆT NAM',
-    description: '02/04/2025 - 02/05/2025',
-    coverUrl: 'https://cdn1.fahasa.com/media/magentothem/banner7/sbooksT4_840x320.png',
+    coverUrl: 'https://uitbookstorestorage.blob.core.windows.net/images/kkbookstore_image__1749799248_069f735a-4d39-44ec-85b8-32f9481b83d9',
   },
 ];
 

@@ -76,8 +76,8 @@ export const PRODUCT_PUBLISH_OPTIONS = [
 
 export const PRODUCT_SORT_OPTIONS = [
   { value: 'CreationTime', label: 'Mới nhất' },
-  { value: 'NameDesc', label: 'Giá: Cao - Thấp' },
-  { value: 'NameAsc', label: 'Giá: Thấp - Cao' },
+  { value: 'MinUnitPriceDesc', label: 'Giá: Cao - Thấp' },
+  { value: 'MinUnitPriceAsc', label: 'Giá: Thấp - Cao' },
 ];
 
 export const PRODUCT_CATEGORY_GROUP_OPTIONS = [

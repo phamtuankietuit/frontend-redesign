@@ -14,7 +14,8 @@ import CardHeader from '@mui/material/CardHeader';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { selectAuth } from 'src/state/auth/auth.slice';
-import { setAddress, selectAddress } from 'src/state/address/address.slice';
+import { selectAddress, setAddress } from 'src/state/address/address.slice';
+import { nextStep, pickAddress } from 'src/state/cart/cart.slice';
 import {
   getWardsAsync,
   getAddressesAsync,
@@ -25,6 +26,7 @@ import {
   updateAddressAsync,
 } from 'src/services/address/address.service';
 
+import { usePathname } from 'src/routes/hooks';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
@@ -92,10 +94,10 @@ export function AccountBillingAddress() {
   }, [popover]);
 
   useEffect(() => {
-    if (addresses.length === 0 && user) {
+    if (user) {
       dispatch(getAddressesAsync(user.id));
     }
-  }, [dispatch, user, addresses]);
+  }, [dispatch, user]);
 
   const [loadingEditAddress, setLoadingEditAddress] = useState(false);
 
@@ -140,6 +142,18 @@ export function AccountBillingAddress() {
     }
   };
 
+  const pathName = usePathname();
+
+  const isCheckoutPage = pathName.includes('/cart');
+
+  const handleSelectAddress = useCallback(
+    (address) => {
+      dispatch(pickAddress(address));
+      dispatch(nextStep());
+    },
+    [dispatch],
+  );
+
   return (
     <>
       <Card>
@@ -158,23 +172,35 @@ export function AccountBillingAddress() {
         />
 
         <Stack spacing={2.5} sx={{ p: 3 }}>
-          {addresses.length === 0 && (
+          {addresses?.length === 0 && (
             <EmptyContent title="Không có dữ liệu" filled sx={{ py: 10 }} />
           )}
-          {addresses.map((address) => (
+          {addresses?.map((address) => (
             <AddressItem
               variant="outlined"
               key={address.id}
               address={address}
               action={
-                <IconButton
-                  onClick={(event) => {
-                    handleSelectedId(event, address.id);
-                  }}
-                  sx={{ position: 'absolute', top: 8, right: 8 }}
-                >
-                  <Iconify icon="eva:more-vertical-fill" />
-                </IconButton>
+                <>
+                  <IconButton
+                    onClick={(event) => {
+                      handleSelectedId(event, address.id);
+                    }}
+                    sx={{ position: 'absolute', top: 8, right: 8 }}
+                  >
+                    <Iconify icon="eva:more-vertical-fill" />
+                  </IconButton>
+
+                  {isCheckoutPage && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleSelectAddress(address)}
+                    >
+                      Giao đến địa chỉ này
+                    </Button>
+                  )}
+                </>
               }
               sx={{ p: 2.5, borderRadius: 1 }}
             />

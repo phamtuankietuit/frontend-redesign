@@ -5,25 +5,26 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
-import { usePathname } from 'src/routes/hooks';
+import { useRouter } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
-import { useDebounce } from 'src/hooks/use-debounce';
 
 import { _notifications } from 'src/_mock';
 import { selectAuth } from 'src/state/auth/auth.slice';
-import { useSearchProducts } from 'src/actions/product';
-import { getUserRole } from 'src/services/token.service';
 import { getMeAsync } from 'src/services/auth/auth.service';
 import { selectProductType } from 'src/state/product-type/product-type.slice';
 import { getProductTypesAsync } from 'src/services/product-type/product-type.service';
 
 import { Logo } from 'src/components/logo';
+import { Iconify } from 'src/components/iconify';
+import { FormControlLabel, IconButton, Switch, Tooltip } from '@mui/material';
+import { selectSearch, setMode } from 'src/state/search/search.slice';
+import { paths } from 'src/routes/paths';
 
 import { Main } from './main';
 import { NavMobile } from './nav/mobile';
 import { NavDesktop } from './nav/desktop';
-import { Footer, HomeFooter } from './footer';
+import { Footer } from './footer';
 import { _account } from '../config-nav-account';
 import { getConfigNavMain } from '../config-nav-main';
 import { MenuButton } from '../components/menu-button';
@@ -44,22 +45,15 @@ export function MainLayout({ sx, data, children, header }) {
 
   const layoutQuery = 'sm';
 
-  // SearchHome
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = useCallback((inputValue) => {
-    setSearchQuery(inputValue);
-  }, []);
-
-  const debouncedQuery = useDebounce(searchQuery);
-
-  const { searchResults, searchLoading } = useSearchProducts(debouncedQuery);
+  const router = useRouter();
 
   const dispatch = useDispatch();
 
   const { user } = useSelector(selectAuth);
 
   const { productTypes } = useSelector(selectProductType);
+
+  const { mode } = useSelector(selectSearch);
 
   useEffect(() => {
     if (productTypes.length === 0) {
@@ -128,12 +122,8 @@ export function MainLayout({ sx, data, children, header }) {
                     },
                   }}
                 />
-                <SearchHome
-                  query={debouncedQuery}
-                  results={searchResults}
-                  onSearch={handleSearch}
-                  loading={searchLoading}
-                />
+
+                <SearchHome />
               </Box>
             ),
             rightArea: (
@@ -142,7 +132,7 @@ export function MainLayout({ sx, data, children, header }) {
                 alignItems="center"
                 gap={{ xs: 0, sm: 0.75, md: 1.25 }}
               >
-                {user && <NotificationsDrawer data={_notifications} />}
+                {/* {user && <NotificationsDrawer data={_notifications} />} */}
                 <SettingsButton />
                 {!user && <SignInButton />}
                 {user && <AccountDrawer data={_account} />}

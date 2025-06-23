@@ -1,4 +1,4 @@
-import { Controller } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 
@@ -6,7 +6,9 @@ import { varAlpha } from 'src/theme/styles';
 
 // ----------------------------------------------------------------------
 
-export default function MyOption({ name, control, values }) {
+export default function MyOption({ name, values }) {
+  const { control } = useFormContext();
+
   return (
     <Controller
       name={name}

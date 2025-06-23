@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
@@ -23,30 +23,24 @@ import {
 import { updateURLParams } from 'src/utils/params-helper';
 
 import { PRODUCT_SORT_OPTIONS } from 'src/_mock';
-import { selectAuth } from 'src/state/auth/auth.slice';
-import { getProductsAsync } from 'src/services/product/product.service';
 import {
+  resetAttributeFilters,
   selectProduct,
-  setCatalogTableFilters,
+  setAttributeFilters,
 } from 'src/state/product/product.slice';
-import {
-  selectProductType,
-  resetProductTypeList,
-} from 'src/state/product-type/product-type.slice';
+import { selectProductType } from 'src/state/product-type/product-type.slice';
 import {
   getProductTypeByIdAsync,
   getProductTypesFlattenAsync,
   getProductTypeAttributesAsync,
 } from 'src/services/product-type/product-type.service';
+import { getProductsAsync } from 'src/services/product/product.service';
 
 import { EmptyContent } from 'src/components/empty-content';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { ProductList } from '../product-list';
 import { ProductSort } from '../product-sort';
-import { CartIcon } from '../components/cart-icon';
-import { ChatIcon } from '../components/chat-icon';
-import { useCheckoutContext } from '../../checkout/context';
 
 // ----------------------------------------------------------------------
 
@@ -83,105 +77,73 @@ export function ProductShopView() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const productTypeId = searchParams.get('productTypeId');
+  const productTypeId = searchParams.get('productTypeId') || '1';
   const pageNumber = searchParams.get('pageNumber') || 1;
-  const minPrice = searchParams.get('minPrice');
-  const maxPrice = searchParams.get('maxPrice');
-  const sortBy = searchParams.get('sortBy');
-  const sortDirection = searchParams.get('sortDirection');
+  const minPrice = searchParams.get('minPrice') || 0;
+  const maxPrice = searchParams.get('maxPrice') || 999999999;
+  const sortBy = searchParams.get('sortBy') || 'CreationTime';
+  const sortDirection = searchParams.get('sortDirection') || 'desc';
+  const search = searchParams.get('search') || '';
 
-  const { user } = useSelector(selectAuth);
+  let sortValue = '';
+  if (sortBy === 'CreationTime') {
+    sortValue = 'CreationTime';
+  } else if (sortBy === 'MinUnitPrice') {
+    const direction = sortDirection === 'desc' ? 'Desc' : 'Asc';
+    sortValue = `MinUnitPrice${direction}`;
+  }
 
   const {
-    catalogPage: { products, tableFilters, loading, error, totalPages },
+    catalogPage: {
+      products,
+      tableFilters,
+      loading,
+      error,
+      totalPages,
+      attributeFilters,
+      expandedItems,
+      breadcrumbs,
+      attributes,
+    },
   } = useSelector(selectProduct);
 
-  const {
-    productTypesFlatten,
-    catalogPage: { productTypeList, listAttributes },
-  } = useSelector(selectProductType);
-  // console.log('🚀 ~ ProductShopView ~ listAttributes:', listAttributes);
-
-  const checkout = useCheckoutContext();
+  const { productTypesFlatten } = useSelector(selectProductType);
 
   const productsEmpty = (products.length === 0 && !loading) || error;
 
-  const [expandedItems, setExpandedItems] = useState(['all']);
-
-  const listBreadcrumbs = useMemo(
-    () => [
-      { name: 'Tất cả', href: '/products' },
-      ...productTypeList.map((item) => ({
-        name: item.displayName,
-        href: `/products?productTypeId=${item.id}`,
-      })),
-    ],
-    [productTypeList],
-  );
-
   const handleSortBy = (newValue) => {
     const newParams = new URLSearchParams(searchParams.toString());
+
     switch (newValue) {
       case 'CreationTime':
-        dispatch(
-          setCatalogTableFilters({
-            pageNumber: 1,
-            sortBy: newValue,
-            sortDirection: 'desc',
-          }),
-        );
         newParams.set('sortBy', 'CreationTime');
         newParams.set('sortDirection', 'desc');
         break;
-      case 'NameDesc':
-        dispatch(
-          setCatalogTableFilters({
-            pageNumber: 1,
-            sortBy: 'Name',
-            sortDirection: 'desc',
-          }),
-        );
-        newParams.set('sortBy', 'Name');
+      case 'MinUnitPriceDesc':
+        newParams.set('sortBy', 'MinUnitPrice');
         newParams.set('sortDirection', 'desc');
         break;
-      case 'NameAsc':
-        dispatch(
-          setCatalogTableFilters({
-            pageNumber: 1,
-            sortBy: 'Name',
-            sortDirection: 'asc',
-          }),
-        );
-        newParams.set('sortBy', 'Name');
+      case 'MinUnitPriceAsc':
+        newParams.set('sortBy', 'MinUnitPrice');
         newParams.set('sortDirection', 'asc');
         break;
-      default: {
+      default:
         break;
-      }
     }
     newParams.set('pageNumber', 1);
     setSearchParams(newParams);
   };
 
   const handleSelectedTreeView = (event, itemIds) => {
-    if (itemIds !== 'all') {
-      const newParams = updateURLParams(searchParams, {
-        productTypeId: itemIds,
-        pageNumber: 1,
-      });
-      setSearchParams(newParams);
-    } else {
-      const newParams = updateURLParams(searchParams, { pageNumber: 1 }, [
-        'productTypeId',
-      ]);
-      setSearchParams(newParams);
-      setExpandedItems(['all']);
-    }
+    const newParams = updateURLParams(searchParams, {
+      productTypeId: itemIds,
+      pageNumber: 1,
+    });
+    setSearchParams(newParams);
+    dispatch(resetAttributeFilters({}));
   };
 
   const handlePageChange = (event, newPage) => {
-    dispatch(setCatalogTableFilters({ pageNumber: newPage }));
-
     const newParams = updateURLParams(searchParams, { pageNumber: newPage });
     setSearchParams(newParams);
   };
@@ -195,80 +157,95 @@ export function ProductShopView() {
       maxPrice: max,
     });
     setSearchParams(newParams);
-
-    dispatch(
-      setCatalogTableFilters({
-        pageNumber: 1,
-        minPrice: min,
-        maxPrice: max,
-      }),
-    );
   };
 
+  const handleChangeCustomFilters = useCallback(
+    (attributeId, selectedValues) => {
+      dispatch(
+        setAttributeFilters({
+          attributeId,
+          selectedValues,
+        }),
+      );
+    },
+    [dispatch],
+  );
+
+  const fetchAttributesData = useCallback(() => {
+    dispatch(getProductTypeAttributesAsync(productTypeId));
+  }, [dispatch, productTypeId]);
+
   useEffect(() => {
-    setExpandedItems([
-      'all',
-      ...productTypeList.map((item) => String(item.id)),
-    ]);
-  }, [productTypeList]);
+    fetchAttributesData();
+  }, [fetchAttributesData]);
 
-  const isMounted = useRef(false);
+  const fetchProductTypesFlattenData = useCallback(() => {
+    dispatch(getProductTypesFlattenAsync());
+  }, [dispatch]);
 
   useEffect(() => {
-    if (isMounted.current) {
-      dispatch(getProductsAsync(tableFilters));
-    } else {
-      isMounted.current = true;
-    }
+    fetchProductTypesFlattenData();
+  }, [fetchProductTypesFlattenData]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableFilters]);
+  const fetchBreadcrumbsData = useCallback(() => {
+    dispatch(
+      getProductTypeByIdAsync({
+        id: productTypeId,
+        params: { withParent: true },
+      }),
+    );
+  }, [dispatch, productTypeId]);
+
+  useEffect(() => {
+    fetchBreadcrumbsData();
+  }, [fetchBreadcrumbsData]);
 
   const fetchData = useCallback(() => {
-    if (productTypeId !== null) {
-      dispatch(
-        getProductTypeByIdAsync({
-          id: productTypeId,
-          params: {
-            withParent: true,
-          },
-        }),
-      );
+    const customFilters = {};
 
-      dispatch(getProductTypeAttributesAsync(productTypeId));
+    if (attributeFilters && Object.keys(attributeFilters).length > 0) {
+      Object.keys(attributeFilters)?.forEach((key) => {
+        attributeFilters[key].forEach((item) => {
+          const propName = String(item.name);
+          const value = item.value;
 
-      dispatch(
-        setCatalogTableFilters({
-          pageNumber: pageNumber ? Number(pageNumber) : 1,
-          productTypeIds: productTypeId,
-          sortBy,
-          sortDirection,
-          minPrice: minPrice ? Number(minPrice) : undefined,
-          maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        }),
-      );
-    } else {
-      dispatch(
-        setCatalogTableFilters({
-          pageNumber: pageNumber ? Number(pageNumber) : 1,
-          productTypeIds: undefined,
-          sortBy,
-          sortDirection,
-          minPrice: minPrice ? Number(minPrice) : undefined,
-          maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        }),
-      );
-      dispatch(resetProductTypeList());
+          if (!customFilters[propName]) {
+            customFilters[propName] = [];
+          }
+
+          customFilters[propName].push(value);
+        });
+      });
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productTypeId]);
+    dispatch(
+      getProductsAsync({
+        pageNumber,
+        pageSize: tableFilters.pageSize,
+        productTypeIds: [productTypeId],
+        sortBy,
+        sortDirection,
+        minPrice,
+        maxPrice,
+        customFilters,
+        searchQuery: search,
+      }),
+    );
+  }, [
+    dispatch,
+    productTypeId,
+    tableFilters,
+    pageNumber,
+    sortBy,
+    sortDirection,
+    minPrice,
+    maxPrice,
+    attributeFilters,
+    search,
+  ]);
 
   useEffect(() => {
     fetchData();
-    dispatch(getProductTypesFlattenAsync());
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchData]);
 
   const renderFilters = (
@@ -280,7 +257,7 @@ export function ProductShopView() {
     >
       <Stack direction="row" spacing={1} flexShrink={0}>
         <ProductSort
-          sort={tableFilters.sortBy}
+          sort={sortValue}
           onSort={handleSortBy}
           sortOptions={PRODUCT_SORT_OPTIONS}
         />
@@ -297,9 +274,6 @@ export function ProductShopView() {
 
   return (
     <Container sx={{ mb: 15 }}>
-      <CartIcon totalItems={checkout.totalItems} />
-      {user && <ChatIcon />}
-
       <Stack
         direction="row"
         spacing={2.5}
@@ -309,11 +283,19 @@ export function ProductShopView() {
           my: { xs: 1, md: 3 },
         }}
       >
-        <CustomBreadcrumbs
-          links={[{ name: 'Trang chủ', href: '/' }, ...listBreadcrumbs]}
-        />
+        {!search && (
+          <CustomBreadcrumbs
+            links={[{ name: 'Trang chủ', href: '/' }, ...breadcrumbs]}
+          />
+        )}
 
-        {renderFilters}
+        {!search && renderFilters}
+
+        {search && (
+          <Typography variant="body2" sx={{ flexGrow: 1 }}>
+            {`Kết quả tìm kiếm cho "${search}"`}
+          </Typography>
+        )}
       </Stack>
 
       <Grid container spacing={2}>
@@ -321,24 +303,24 @@ export function ProductShopView() {
           <Card sx={{ height: 'fit-content', p: 2 }}>
             <Stack spacing={1} divider={<Divider />}>
               {/* CATEGORY */}
-              <Box key="category" display="flex" flexDirection="column">
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Danh mục sản phẩm
-                </Typography>
+              {!search && (
+                <Box key="category" display="flex" flexDirection="column">
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    Danh mục sản phẩm
+                  </Typography>
 
-                <SimpleTreeView
-                  sx={{ overflowX: 'hidden', width: 1 }}
-                  selectedItems={[productTypeId || 'all']}
-                  onSelectedItemsChange={handleSelectedTreeView}
-                  expandedItems={['all', ...expandedItems]}
-                  expansionTrigger="iconContainer"
-                  slotProps={{
-                    collapseIcon: {
-                      sx: { display: 'none' },
-                    },
-                  }}
-                >
-                  <TreeItem itemId="all" label="Tất cả">
+                  <SimpleTreeView
+                    sx={{ overflowX: 'hidden', width: 1 }}
+                    selectedItems={[productTypeId || '1']}
+                    onSelectedItemsChange={handleSelectedTreeView}
+                    expandedItems={[...expandedItems]}
+                    expansionTrigger="iconContainer"
+                    slotProps={{
+                      collapseIcon: {
+                        sx: { display: 'none' },
+                      },
+                    }}
+                  >
                     {productTypesFlatten
                       ?.filter(
                         (productType) => !productType.parentProductTypeId,
@@ -350,10 +332,9 @@ export function ProductShopView() {
                           allItems={productTypesFlatten}
                         />
                       ))}
-                  </TreeItem>
-                </SimpleTreeView>
-              </Box>
-
+                  </SimpleTreeView>
+                </Box>
+              )}
               {/* PRICE */}
               <Box key="price" display="flex" flexDirection="column">
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -361,7 +342,7 @@ export function ProductShopView() {
                 </Typography>
 
                 <RadioGroup
-                  value={`${tableFilters.minPrice},${tableFilters.maxPrice}`}
+                  value={`${minPrice},${maxPrice}`}
                   onChange={handlePriceFilterChange}
                 >
                   {PRICE_OPTIONS.map((option, index) => (
@@ -374,41 +355,47 @@ export function ProductShopView() {
                   ))}
                 </RadioGroup>
               </Box>
-
               {/* ATTRIBUTE */}
-              {listAttributes.map((attribute) => (
-                <Box key={attribute.id} display="flex" flexDirection="column">
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    {attribute?.name}
-                  </Typography>
-
-                  <Autocomplete
-                    sx={{ mb: 1 }}
-                    fullWidth
-                    multiple
-                    limitTags={3}
-                    options={attribute?.values || []}
-                    getOptionLabel={(option) => option.value}
-                    renderInput={(params) => <TextField {...params} />}
-                    renderOption={(props, option) => (
-                      <li {...props} key={option.value}>
-                        {option.value}
-                      </li>
-                    )}
-                    renderTags={(selected, getTagProps) =>
-                      selected.map((option, index) => (
-                        <Chip
-                          {...getTagProps({ index })}
-                          key={option.value}
-                          label={option.value}
-                          size="small"
-                          variant="soft"
-                        />
-                      ))
-                    }
-                  />
-                </Box>
-              ))}
+              {!search &&
+                attributes.map((attribute) => (
+                  <Box key={attribute.id} display="flex" flexDirection="column">
+                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                      {attribute?.name}
+                    </Typography>
+                    <Autocomplete
+                      sx={{ mb: 1 }}
+                      fullWidth
+                      multiple
+                      limitTags={3}
+                      value={attributeFilters[attribute.id] || []}
+                      onChange={(event, newValue) =>
+                        handleChangeCustomFilters(attribute.id, newValue)
+                      }
+                      options={attribute?.values || []}
+                      getOptionLabel={(option) => option.value}
+                      isOptionEqualToValue={(option, value) =>
+                        option.attributeValueId === value.attributeValueId
+                      }
+                      renderInput={(params) => <TextField {...params} />}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.value}>
+                          {option.value}
+                        </li>
+                      )}
+                      renderTags={(selected, getTagProps) =>
+                        selected.map((option, index) => (
+                          <Chip
+                            {...getTagProps({ index })}
+                            key={option.value}
+                            label={option.value}
+                            size="small"
+                            variant="soft"
+                          />
+                        ))
+                      }
+                    />
+                  </Box>
+                ))}
             </Stack>
           </Card>
         </Grid>
@@ -416,9 +403,10 @@ export function ProductShopView() {
           <ProductList
             products={products}
             loading={loading}
-            pageNumber={tableFilters.pageNumber}
+            pageNumber={Number(pageNumber)}
             count={totalPages}
             onPageChange={handlePageChange}
+            fourItems
           />
 
           {productsEmpty && renderNotFound}

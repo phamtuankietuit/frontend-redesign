@@ -18,6 +18,7 @@ import { passwordRegex, phoneNumberRegex } from 'src/utils/regex';
 
 import { EmailInboxIcon } from 'src/assets/icons';
 import { signUpAsync } from 'src/services/auth/auth.service';
+import { createConversationAsync } from 'src/services/chat/chat.service';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
@@ -95,7 +96,21 @@ export function CenteredRegisterView() {
         gender: Number(data.gender),
       };
 
-      await dispatch(signUpAsync(body)).unwrap();
+      let response = null;
+
+      await dispatch(signUpAsync(body))
+        .unwrap()
+        .then((res) => {
+          response = res;
+        });
+
+      if (response) {
+        await dispatch(
+          createConversationAsync({
+            customerId: response.basicUserInfo.userId,
+          }),
+        ).unwrap();
+      }
 
       toast.success('Đăng ký thành công!');
 

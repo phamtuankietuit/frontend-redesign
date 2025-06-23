@@ -28,6 +28,10 @@ const Page403 = lazy(() => import('src/pages/error/403'));
 const Page404 = lazy(() => import('src/pages/error/404'));
 // Blank
 const BlankPage = lazy(() => import('src/pages/blank'));
+// Place Order Success
+const PlaceOrderSuccessPage = lazy(
+  () => import('src/pages/place-order/status'),
+);
 
 // ----------------------------------------------------------------------
 

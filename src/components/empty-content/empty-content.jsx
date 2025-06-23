@@ -14,7 +14,7 @@ export function EmptyContent({
   filled,
   slotProps,
   description,
-  title = 'No data',
+  title = 'Không có dữ liệu',
   ...other
 }) {
   return (
@@ -27,8 +27,10 @@ export function EmptyContent({
         height: 1,
         ...(filled && {
           borderRadius: 2,
-          bgcolor: (theme) => varAlpha(theme.vars.palette.grey['500Channel'], 0.04),
-          border: (theme) => `dashed 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
+          bgcolor: (theme) =>
+            varAlpha(theme.vars.palette.grey['500Channel'], 0.04),
+          border: (theme) =>
+            `dashed 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
         }),
         ...sx,
       }}

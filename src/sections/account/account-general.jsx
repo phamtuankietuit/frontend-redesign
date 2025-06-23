@@ -193,6 +193,24 @@ export function AccountGeneral() {
                   )}
                 />
               </Box>
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Loại khách hàng</Typography>
+                <Label
+                  variant="soft"
+                  color={
+                    (user?.customerTypeName === 'Kim cương' && 'info') ||
+                    (user?.customerTypeName === 'Vàng' && 'warning') ||
+                    (user?.customerTypeName === 'Bạc' && 'default') ||
+                    'primary'
+                  }
+                  sx={{
+                    width: 'fit-content',
+                  }}
+                >
+                  {user?.customerTypeName || 'Thường'}
+                </Label>
+              </Stack>
             </Box>
 
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>

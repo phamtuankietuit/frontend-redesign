@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -9,6 +10,7 @@ import { Link, Stack, Rating, Typography } from '@mui/material';
 
 import { RouterLink } from 'src/routes/components';
 
+import { selectHome } from 'src/state/home/home.slice';
 import { fCurrency, fMyShortenNumber } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
@@ -25,6 +27,9 @@ export function EcommerceBestSalesman({
   headLabel,
   ...other
 }) {
+  const { topSellingMonthly, topSellingMonthlyLoading } =
+    useSelector(selectHome);
+
   return (
     <Card {...other}>
       <CardHeader
@@ -38,8 +43,8 @@ export function EcommerceBestSalesman({
           <TableHeadCustom headLabel={headLabel} />
 
           <TableBody>
-            {tableData.map((row) => (
-              <RowItem key={row.id} row={row} />
+            {topSellingMonthly.map((row, index) => (
+              <RowItem key={row.id} row={row} index={index} />
             ))}
           </TableBody>
         </Table>
@@ -50,14 +55,14 @@ export function EcommerceBestSalesman({
 
 // ----------------------------------------------------------------------
 
-function RowItem({ row }) {
+function RowItem({ row, index }) {
   return (
     <TableRow>
       <TableCell>
         <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
           <Image
-            alt={row.imageUrl}
-            src={row.imageUrl}
+            alt={row?.thumbnailImageUrl}
+            src={row?.thumbnailImageUrl}
             sx={{
               borderRadius: 1.5,
               maxWidth: 100,
@@ -65,7 +70,7 @@ function RowItem({ row }) {
           />
           <Stack spacing={1} sx={{ p: 3, pt: 2 }}>
             <Link component={RouterLink} color="inherit" variant="h6" noWrap>
-              {row.name}
+              {row?.name}
             </Link>
 
             <Stack
@@ -80,12 +85,12 @@ function RowItem({ row }) {
               >
                 <Rating
                   size="small"
-                  value={row.rating}
+                  value={row?.averageRating}
                   precision={0.1}
                   readOnly
                   sx={{ mr: 1 }}
                 />
-                {`(${fMyShortenNumber(row.totalRatings)})`}
+                {/* {`(${fMyShortenNumber(row.totalRatings)})`} */}
               </Stack>
 
               <Stack
@@ -100,10 +105,10 @@ function RowItem({ row }) {
                     textDecoration: 'line-through',
                   }}
                 >
-                  {fCurrency(row.unitPrice)}
+                  {fCurrency(row?.minUnitPrice)}
                 </Box>
                 <Box component="span">
-                  {fCurrency(row.recommendedRetailPrice)}
+                  {fCurrency(row?.minRecommendedRetailPrice)}
                 </Box>
               </Stack>
             </Stack>
@@ -113,7 +118,7 @@ function RowItem({ row }) {
 
       <TableCell align="center">
         <Typography variant="h6">
-          {fCurrency(row.sales, { currencyDisplay: 'code' })}
+          {fCurrency(row?.soldCount, { currencyDisplay: 'code' })}
         </Typography>
       </TableCell>
 
@@ -121,10 +126,10 @@ function RowItem({ row }) {
         <Label
           variant="soft"
           color={
-            (row.rank === 'Top 1' && 'primary') ||
-            (row.rank === 'Top 2' && 'secondary') ||
-            (row.rank === 'Top 3' && 'info') ||
-            (row.rank === 'Top 4' && 'warning') ||
+            (index === 0 && 'primary') ||
+            (index === 1 && 'secondary') ||
+            (index === 2 && 'info') ||
+            (index === 3 && 'warning') ||
             'error'
           }
           sx={{
@@ -132,7 +137,7 @@ function RowItem({ row }) {
             p: 3,
           }}
         >
-          {row.rank}
+          {index + 1}
         </Label>
       </TableCell>
     </TableRow>

@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import Stack from '@mui/material/Stack';
 import Rating from '@mui/material/Rating';
 import Avatar from '@mui/material/Avatar';
@@ -5,10 +6,15 @@ import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 
 import { Iconify } from 'src/components/iconify';
+import { fDateTime, formatStr } from 'src/utils/format-time';
+import { Box, ButtonBase } from '@mui/material';
+import { selectAuth } from 'src/state/auth/auth.slice';
 
 // ----------------------------------------------------------------------
 
-export function ProductReviewItem({ review }) {
+export function ProductReviewItem({ review, onLikeComment, onReportComment }) {
+  const { user } = useSelector(selectAuth);
+
   const renderInfo = (
     <Stack
       spacing={2}
@@ -22,14 +28,18 @@ export function ProductReviewItem({ review }) {
       />
 
       <ListItemText
-        primary={review.userName}
-        // secondary={fDate(review.postedAt)}
+        primary={review.fullName}
+        secondary={fDateTime(review.creationTime, formatStr.myFormat.dateTime)}
         primaryTypographyProps={{
           noWrap: true,
           typography: 'subtitle2',
           mb: 0.5,
         }}
-        // secondaryTypographyProps={{ noWrap: true, typography: 'caption', component: 'span' }}
+        secondaryTypographyProps={{
+          noWrap: true,
+          typography: 'caption',
+          component: 'span',
+        }}
       />
     </Stack>
   );
@@ -53,13 +63,51 @@ export function ProductReviewItem({ review }) {
       <Stack
         direction="row"
         alignItems="center"
-        sx={{ color: 'success.main', typography: 'caption' }}
+        sx={{ typography: 'caption' }}
+        spacing={0.5}
       >
-        <Iconify icon="ic:round-verified" width={16} sx={{ mr: 0.5 }} />
-        Đã mua hàng
+        <Typography variant="caption">Phân loại: </Typography>
+        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+          {review.productVariantName}
+        </Typography>
       </Stack>
 
       <Typography variant="body2">{review.comment}</Typography>
+
+      {!!review.imageUrls?.length && (
+        <Stack direction="row" flexWrap="wrap" spacing={1} sx={{ pt: 1 }}>
+          {review.imageUrls.map((attachment) => (
+            <Box
+              key={attachment}
+              component="img"
+              alt={attachment}
+              src={attachment}
+              sx={{ width: 64, height: 64, borderRadius: 1.5 }}
+            />
+          ))}
+        </Stack>
+      )}
+
+      {user && (
+        <Stack direction="row" spacing={2} sx={{ pt: 1.5 }}>
+          <ButtonBase
+            disableRipple
+            sx={{ gap: 0.5, typography: 'caption' }}
+            onClick={() => onLikeComment(review.id)}
+          >
+            <Iconify icon="solar:like-outline" width={16} />
+            {review.likesCount || 0}
+          </ButtonBase>
+          <ButtonBase
+            disableRipple
+            sx={{ gap: 0.5, typography: 'caption' }}
+            onClick={() => onReportComment(review.id)}
+          >
+            <Iconify icon="material-symbols:report-outline" width={16} />
+            Báo cáo
+          </ButtonBase>
+        </Stack>
+      )}
     </Stack>
   );
 

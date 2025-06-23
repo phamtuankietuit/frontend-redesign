@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 export function useThumbs(mainApi, options) {
   const [thumbsRef, thumbsApi] = useEmblaCarousel({
     containScroll: 'keepSnaps',
-    dragFree: true,
+    dragFree: false, // Tắt dragFree để tránh scroll to end
     ...options,
   });
 
@@ -18,12 +18,18 @@ export function useThumbs(mainApi, options) {
       mainApi.scrollTo(index);
     },
     [mainApi, thumbsApi]
-  );
-
-  const onSelect = useCallback(() => {
+  ); const onSelect = useCallback(() => {
     if (!mainApi || !thumbsApi) return;
-    setSelectedIndex(mainApi.selectedScrollSnap());
-    thumbsApi.scrollTo(mainApi.selectedScrollSnap());
+    const selectedSnap = mainApi.selectedScrollSnap();
+    setSelectedIndex(selectedSnap);
+
+    // Chỉ scroll khi cần thiết và kiểm soát chặt chẽ hơn
+    const slidesInView = thumbsApi.slidesInView();
+    const isInView = slidesInView.includes(selectedSnap);
+
+    if (!isInView) {
+      thumbsApi.scrollTo(selectedSnap, false);
+    }
   }, [mainApi, thumbsApi, setSelectedIndex]);
 
   useEffect(() => {

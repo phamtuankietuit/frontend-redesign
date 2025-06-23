@@ -1,4 +1,5 @@
 import { z as zod } from 'zod';
+import { useDispatch, useSelector } from 'react-redux';
 import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,23 +14,36 @@ import DialogContent from '@mui/material/DialogContent';
 
 import { toastMessage } from 'src/utils/constant';
 
-import { Form, Field } from 'src/components/hook-form';
+import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import { selectAuth } from 'src/state/auth/auth.slice';
+import { uploadImagesAsync } from 'src/services/file/file.service';
+import { ratingProductAsync } from 'src/services/rating/rating.service';
+import { toast } from 'sonner';
 
 // ----------------------------------------------------------------------
 
 export const ReviewSchema = zod.object({
-  rating: zod.number().min(1, 'Bạn chưa đánh giá sao!'),
-  review: zod.string().min(1, { message: toastMessage.error.empty }),
+  ratingValue: zod.number().min(1, 'Bạn chưa đánh giá sao!'),
+  comment: zod.string().min(1, { message: toastMessage.error.empty }),
+  images: zod.any().optional(),
 });
 
 // ----------------------------------------------------------------------
 
-export function ProductReviewNewForm({ onClose, ...other }) {
+export function ProductReviewNewForm({
+  productId,
+  productVariantId,
+  onClose,
+  ...other
+}) {
+  const dispatch = useDispatch();
+
+  const { user } = useSelector(selectAuth);
+
   const defaultValues = {
-    rating: 0,
-    review: '',
-    name: '',
-    email: '',
+    ratingValue: 0,
+    comment: '',
+    images: [],
   };
 
   const methods = useForm({
@@ -41,15 +55,54 @@ export function ProductReviewNewForm({ onClose, ...other }) {
   const {
     reset,
     handleSubmit,
+    getValues,
+    setValue,
     formState: { isSubmitting },
   } = methods;
 
+  const handleRemoveFile = useCallback(
+    (inputFile) => {
+      const currentImages = getValues('images');
+      const filtered = currentImages?.filter((file) => file !== inputFile);
+      setValue('images', filtered, { shouldValidate: true });
+    },
+    [setValue, getValues],
+  );
+
+  const handleRemoveAllFiles = useCallback(() => {
+    setValue('images', [], { shouldValidate: true });
+  }, [setValue]);
+
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const newImages = [];
+
+      if (data.images.length > 0) {
+        const imgUrls = await dispatch(uploadImagesAsync(data.images)).unwrap();
+
+        if (imgUrls.length > 0) {
+          newImages.push(...imgUrls);
+        }
+      }
+
+      const body = {
+        comment: data.comment,
+        ratingValue: data.ratingValue,
+        imageUrls: newImages,
+      };
+
+      await dispatch(
+        ratingProductAsync({
+          productId,
+          variantId: productVariantId,
+          body,
+        }),
+      ).unwrap();
+
+      toast.success('Đánh giá sản phẩm thành công!');
+
       reset();
       onClose();
-      console.info('DATA', data);
     } catch (error) {
       console.error(error);
     }
@@ -70,11 +123,27 @@ export function ProductReviewNewForm({ onClose, ...other }) {
             <Typography variant="body2" sx={{ mb: 1 }}>
               Đánh giá của bạn về sản phẩm này:
             </Typography>
-            <Field.Rating name="rating" />
+            <Field.Rating name="ratingValue" />
           </div>
 
+          <Field.Upload
+            multiple
+            thumbnail
+            name="images"
+            maxSize={3145728}
+            onRemove={handleRemoveFile}
+            onRemoveAll={handleRemoveAllFiles}
+            sx={{
+              mt: 2,
+              maxWidth: {
+                xs: 300,
+                sm: 480,
+              },
+            }}
+          />
+
           <Field.Text
-            name="review"
+            name="comment"
             label="Đánh giá *"
             multiline
             rows={3}

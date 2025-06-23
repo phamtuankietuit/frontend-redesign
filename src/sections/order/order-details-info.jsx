@@ -2,14 +2,20 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
+
+import { Iconify } from 'src/components/iconify';
+import { fDate, formatStr } from 'src/utils/format-time';
 
 // ----------------------------------------------------------------------
 
 export function OrderDetailsInfo({
+  order,
   customer,
   delivery,
   payment,
@@ -27,8 +33,8 @@ export function OrderDetailsInfo({
       />
       <Stack direction="row" sx={{ p: 3 }}>
         <Avatar
-          alt={customer?.name}
-          src={customer?.avatarUrl}
+          alt={order?.shippingAddress?.receiverName}
+          src={order?.avatarUrl}
           sx={{ width: 48, height: 48, mr: 2 }}
         />
 
@@ -37,25 +43,11 @@ export function OrderDetailsInfo({
           alignItems="flex-start"
           sx={{ typography: 'body2' }}
         >
-          <Typography variant="subtitle2">{customer?.name}</Typography>
+          <Typography variant="subtitle2">
+            {order?.customer?.fullName}
+          </Typography>
 
-          <Box sx={{ color: 'text.secondary' }}>{customer?.email}</Box>
-
-          <div>
-            IP address:
-            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-              {customer?.ipAddress}
-            </Box>
-          </div>
-
-          {/* <Button
-            size="small"
-            color="error"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            sx={{ mt: 1 }}
-          >
-            Add to Blacklist
-          </Button> */}
+          <Box sx={{ color: 'text.secondary' }}>{order?.customer?.email}</Box>
         </Stack>
       </Stack>
     </>
@@ -79,18 +71,18 @@ export function OrderDetailsInfo({
           >
             Giao bởi
           </Box>
-          {delivery?.shipBy}
+          GHN
         </Stack>
         <Stack direction="row" alignItems="center">
           <Box
             component="span"
             sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}
           >
-            Tốc độ
+            Dự kiến giao
           </Box>
-          {delivery?.speedy}
+          {fDate(order?.expectedDeliveryWhen, formatStr.myFormat.date)}
         </Stack>
-        <Stack direction="row" alignItems="center">
+        {/* <Stack direction="row" alignItems="center">
           <Box
             component="span"
             sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}
@@ -100,22 +92,25 @@ export function OrderDetailsInfo({
           <Link underline="always" color="inherit">
             {delivery?.trackingNumber}
           </Link>
-        </Stack>
+        </Stack> */}
       </Stack>
     </>
   );
 
   const renderShipping = (
     <>
-      <CardHeader
-        title="Địa chỉ nhận hàng"
-        // action={
-        //   <IconButton>
-        //     <Iconify icon="solar:pen-bold" />
-        //   </IconButton>
-        // }
-      />
+      <CardHeader title="Địa chỉ nhận hàng" />
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        <Stack direction="row">
+          <Box
+            component="span"
+            sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}
+          >
+            Người nhận
+          </Box>
+          {order?.shippingAddress?.receiverName}
+        </Stack>
+
         <Stack direction="row">
           <Box
             component="span"
@@ -123,8 +118,7 @@ export function OrderDetailsInfo({
           >
             Địa chỉ
           </Box>
-          123 Nguyễn Thượng Hiền, Phường 5, Quận 3, TP.HCM
-          {/* {shippingAddress?.fullAddress} */}
+          {order?.shippingAddress?.detailedFullAddress}
         </Stack>
 
         <Stack direction="row">
@@ -134,8 +128,7 @@ export function OrderDetailsInfo({
           >
             Số điện thoại
           </Box>
-          0358874525
-          {/* {shippingAddress?.phoneNumber} */}
+          {order?.shippingAddress?.phoneNumber}
         </Stack>
       </Stack>
     </>
@@ -154,19 +147,17 @@ export function OrderDetailsInfo({
       <Box
         display="flex"
         alignItems="center"
-        justifyContent="flex-end"
+        justifyContent="flex-start"
         sx={{ p: 3, gap: 0.5, typography: 'body2' }}
       >
-        {/* {payment?.cardNumber}
-        <Iconify icon="logos:mastercard" width={24} /> */}
-        COD
+        {order?.paymentMethod?.name}
       </Box>
     </>
   );
 
   return (
     <Card>
-      {renderCustomer}
+      {/* {renderCustomer} */}
 
       <Divider sx={{ borderStyle: 'dashed' }} />
 

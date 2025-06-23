@@ -1,12 +1,6 @@
-import React from 'react';
-
 import { Box, Grid, Typography } from '@mui/material';
 
 export function ProductDetailsInformation({ productTypeAttributes, sx }) {
-  if (!productTypeAttributes?.length) {
-    return null;
-  }
-
   return (
     <Box
       sx={{
@@ -14,11 +8,18 @@ export function ProductDetailsInformation({ productTypeAttributes, sx }) {
       }}
       className="py-5 px-6 bg-white rounded-lg shadow-sm"
     >
-      {/* <Typography variant="h6" className="mb-4 text-gray-800 font-semibold">
-        Thông tin chi tiết
-      </Typography> */}
-
       <Grid container spacing={2}>
+        {productTypeAttributes.length === 0 && (
+          <Grid item xs={12} key="header" className="flex  items-center">
+            <Typography
+              variant="body1"
+              className="mb-4 text-gray-800 font-semibold"
+            >
+              Thông tin đang được cập nhật...
+            </Typography>
+          </Grid>
+        )}
+
         {productTypeAttributes.map((attribute) => (
           <Grid
             item

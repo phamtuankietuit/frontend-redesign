@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Rating from '@mui/material/Rating';
@@ -8,30 +9,32 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { fShortenNumber } from 'src/utils/format-number';
+import { Button } from '@mui/material';
 
+import { selectProduct } from 'src/state/product/product.slice';
+import { Iconify } from 'src/components/iconify';
 import { ProductReviewList } from './product-review-list';
 import { ProductReviewNewForm } from './product-review-new-form';
 
 // ----------------------------------------------------------------------
 
-export function ProductDetailsReview({ ratings }) {
+export function ProductDetailsReview() {
   const review = useBoolean();
 
-  // const total = sumBy(ratings, (star) => star.starCount);
+  const { ratings } = useSelector(selectProduct);
 
   const renderSummary = (
     <Stack spacing={1} alignItems="center" justifyContent="center">
       <Typography variant="subtitle2">Đánh giá trung bình</Typography>
 
       <Typography variant="h2">
-        {ratings.averageRating}
-        /5
+        {fShortenNumber(ratings?.averageRating) || 0}/5
       </Typography>
 
-      <Rating readOnly value={ratings.averageRating} precision={0.1} />
+      <Rating readOnly value={ratings?.averageRating} precision={0.1} />
 
       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-        ({fShortenNumber(ratings.totalRating)} đánh giá)
+        ({fShortenNumber(ratings?.totalRating) || 0} đánh giá)
       </Typography>
     </Stack>
   );
@@ -54,100 +57,105 @@ export function ProductDetailsReview({ ratings }) {
         <Typography variant="subtitle2" component="span" sx={{ width: 42 }}>
           5 Sao
         </Typography>
-
         <LinearProgress
           color="inherit"
           variant="determinate"
-          value={(ratings.total5StarRating / ratings.totalRating) * 100}
+          value={
+            ((ratings?.total5StarRating || 0) / (ratings?.totalRating || 1)) *
+            100
+          }
           sx={{ mx: 2, flexGrow: 1 }}
         />
-
         <Typography
           variant="body2"
           component="span"
           sx={{ minWidth: 48, color: 'text.secondary' }}
         >
-          {fShortenNumber(ratings.total5StarRating)}
+          {fShortenNumber(ratings?.total5StarRating || 0)}
         </Typography>
       </Stack>
       <Stack key="4 Start" direction="row" alignItems="center">
         <Typography variant="subtitle2" component="span" sx={{ width: 42 }}>
           4 Sao
-        </Typography>
-
+        </Typography>{' '}
         <LinearProgress
           color="inherit"
           variant="determinate"
-          value={(ratings.total4StarRating / ratings.totalRating) * 100}
+          value={
+            ((ratings?.total4StarRating || 0) / (ratings?.totalRating || 1)) *
+            100
+          }
           sx={{ mx: 2, flexGrow: 1 }}
         />
-
         <Typography
           variant="body2"
           component="span"
           sx={{ minWidth: 48, color: 'text.secondary' }}
         >
-          {fShortenNumber(ratings.total4StarRating)}
+          {fShortenNumber(ratings?.total4StarRating || 0)}
         </Typography>
       </Stack>
       <Stack key="3 Start" direction="row" alignItems="center">
         <Typography variant="subtitle2" component="span" sx={{ width: 42 }}>
           3 Sao
-        </Typography>
-
+        </Typography>{' '}
         <LinearProgress
           color="inherit"
           variant="determinate"
-          value={(ratings.total3StarRating / ratings.totalRating) * 100}
+          value={
+            ((ratings?.total3StarRating || 0) / (ratings?.totalRating || 1)) *
+            100
+          }
           sx={{ mx: 2, flexGrow: 1 }}
         />
-
         <Typography
           variant="body2"
           component="span"
           sx={{ minWidth: 48, color: 'text.secondary' }}
         >
-          {fShortenNumber(ratings.total3StarRating)}
+          {fShortenNumber(ratings?.total3StarRating || 0)}
         </Typography>
       </Stack>
       <Stack key="2 Start" direction="row" alignItems="center">
         <Typography variant="subtitle2" component="span" sx={{ width: 42 }}>
           2 Sao
         </Typography>
-
         <LinearProgress
           color="inherit"
           variant="determinate"
-          value={(ratings.total2StarRating / ratings.totalRating) * 100}
+          value={
+            ((ratings?.total2StarRating || 0) / (ratings?.totalRating || 1)) *
+            100
+          }
           sx={{ mx: 2, flexGrow: 1 }}
         />
-
         <Typography
           variant="body2"
           component="span"
           sx={{ minWidth: 48, color: 'text.secondary' }}
         >
-          {fShortenNumber(ratings.total2StarRating)}
+          {fShortenNumber(ratings?.total2StarRating || 0)}
         </Typography>
       </Stack>
       <Stack key="1 Start" direction="row" alignItems="center">
         <Typography variant="subtitle2" component="span" sx={{ width: 42 }}>
           1 Sao
-        </Typography>
-
+        </Typography>{' '}
         <LinearProgress
           color="inherit"
           variant="determinate"
-          value={(ratings.total1StarRating / ratings.totalRating) * 100}
+          value={
+            ((ratings?.total1StarRating || 0) / (ratings?.totalRating || 1)) *
+            100
+          }
           sx={{ mx: 2, flexGrow: 1 }}
         />
-
         <Typography
           variant="body2"
           component="span"
           sx={{ minWidth: 48, color: 'text.secondary' }}
         >
-          {fShortenNumber(ratings.total1StarRating)}
+          {fShortenNumber(ratings?.total1StarRating || 0)}
         </Typography>
       </Stack>
     </Stack>

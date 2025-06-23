@@ -18,6 +18,7 @@ export function ProductDetailsCarousel({ images }) {
   const carousel = useCarousel({
     thumbs: {
       slidesToShow: 'auto',
+      containScroll: false,
     },
   });
 

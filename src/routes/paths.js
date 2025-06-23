@@ -40,6 +40,16 @@ export const paths = {
     checkout: `/products/checkout`,
     details: (id) => `/products/${id}`,
     demo: { details: `/products/${MOCK_ID}` },
+    imageSearch: `/products/image-search`,
+  },
+  campaign: {
+    root: (id) => `/campaign/${id}`,
+  },
+  cart: {
+    root: '/cart',
+  },
+  placeOrder: {
+    root: '/place-order',
   },
   post: {
     root: `/post`,
@@ -78,6 +88,7 @@ export const paths = {
     notifications: `${ROOTS.ACCOUNT}/notifications`,
     security: `${ROOTS.ACCOUNT}/security`,
     orders: `/orders`,
+    orderDetails: (id) => `/orders/${id}`,
   },
   // DASHBOARD
   dashboard: {

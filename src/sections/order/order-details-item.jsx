@@ -1,13 +1,19 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import CardHeader from '@mui/material/CardHeader';
+import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
+import { useBoolean } from 'src/hooks/use-boolean';
 
 import { fCurrency } from 'src/utils/format-number';
 
+import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+import { Button } from '@mui/material';
+import { ProductReviewNewForm } from '../product/product-review-new-form';
 
 // ----------------------------------------------------------------------
 
@@ -17,7 +23,8 @@ export function OrderDetailsItems({
   discount,
   subtotal,
   items = [],
-  totalAmount,
+  total,
+  order,
 }) {
   const renderTotal = (
     <Stack
@@ -28,30 +35,80 @@ export function OrderDetailsItems({
       <Stack direction="row">
         <Box sx={{ color: 'text.secondary' }}>Tổng tiền hàng</Box>
         <Box sx={{ width: 160, typography: 'subtitle2' }}>
-          {fCurrency(subtotal) || '-'}
-        </Box>
-      </Stack>
-
-      <Stack direction="row">
-        <Box sx={{ color: 'text.secondary' }}>Giảm giá phí vận chuyển</Box>
-        <Box sx={{ width: 160, ...(shipping && { color: 'error.main' }) }}>
-          {shipping ? `- ${fCurrency(shipping)}` : '-'}
+          {fCurrency(order?.priceSummary?.subtotal) || '-'}
         </Box>
       </Stack>
 
       <Stack direction="row">
         <Box sx={{ color: 'text.secondary' }}>Giảm giá</Box>
-        <Box sx={{ width: 160, ...(discount && { color: 'error.main' }) }}>
-          {discount ? `- ${fCurrency(discount)}` : '-'}
+        <Box
+          sx={{
+            width: 160,
+            ...(order?.priceSummary?.productDiscount && {
+              color: 'error.main',
+            }),
+          }}
+        >
+          {order?.priceSummary?.productDiscount
+            ? `- ${fCurrency(order?.priceSummary?.productDiscount)}`
+            : '-'}
+        </Box>
+      </Stack>
+
+      <Stack direction="row">
+        <Box sx={{ color: 'text.secondary' }}>Khuyến mãi</Box>
+        <Box
+          sx={{
+            width: 160,
+            ...(order?.priceSummary?.orderVoucherDiscount && {
+              color: 'error.main',
+            }),
+          }}
+        >
+          {order?.priceSummary?.orderVoucherDiscount
+            ? `- ${fCurrency(order?.priceSummary?.orderVoucherDiscount)}`
+            : '-'}
+        </Box>
+      </Stack>
+
+      <Stack direction="row">
+        <Box sx={{ color: 'text.secondary' }}>Phí vận chuyển</Box>
+        <Box sx={{ width: 160 }}>
+          {order?.priceSummary?.shippingFee
+            ? `${fCurrency(order?.priceSummary?.shippingFee)}`
+            : '-'}
+        </Box>
+      </Stack>
+
+      <Stack direction="row">
+        <Box sx={{ color: 'text.secondary' }}>Giảm giá phí vận chuyển</Box>
+        <Box
+          sx={{
+            width: 160,
+            ...(order?.priceSummary?.shippingDiscount && {
+              color: 'error.main',
+            }),
+          }}
+        >
+          {order?.priceSummary?.shippingDiscount
+            ? `- ${fCurrency(order?.priceSummary?.shippingDiscount)}`
+            : '-'}
         </Box>
       </Stack>
 
       <Stack direction="row" sx={{ typography: 'subtitle1' }}>
         <div>Tổng cộng</div>
-        <Box sx={{ width: 160 }}>{fCurrency(totalAmount) || '-'}</Box>
+        <Box sx={{ width: 160 }}>
+          {fCurrency(order?.priceSummary?.total) || '-'}
+        </Box>
       </Stack>
     </Stack>
   );
+
+  const review = useBoolean();
+
+  const [productVariantId, setProductVariantId] = useState(null);
+  const [productId, setProductId] = useState(null);
 
   return (
     <Card>
@@ -78,14 +135,14 @@ export function OrderDetailsItems({
             }}
           >
             <Avatar
-              src={item.coverUrl}
+              src={item?.thumbnailUrl}
               variant="rounded"
               sx={{ width: 48, height: 48, mr: 2 }}
             />
 
             <ListItemText
-              primary={item.name}
-              secondary={item.sku}
+              primary={item?.productName}
+              secondary={item?.productVariantName}
               primaryTypographyProps={{ typography: 'body2' }}
               secondaryTypographyProps={{
                 component: 'span',
@@ -96,16 +153,54 @@ export function OrderDetailsItems({
 
             <Box sx={{ typography: 'body2' }}>x{item.quantity}</Box>
 
-            <Box
-              sx={{ width: 110, textAlign: 'right', typography: 'subtitle2' }}
-            >
-              {fCurrency(item.price)}
-            </Box>
+            <Stack>
+              {item?.recommendedRetailPrice && (
+                <Box
+                  sx={{
+                    textAlign: 'right',
+                    color: 'text.disabled',
+                    textDecoration: 'line-through',
+                    typography: 'subtitle2',
+                  }}
+                >
+                  {fCurrency(item?.recommendedRetailPrice)}
+                </Box>
+              )}
+              <Box
+                sx={{ width: 110, textAlign: 'right', typography: 'subtitle2' }}
+              >
+                {fCurrency(item?.total)}
+              </Box>
+            </Stack>
+
+            {order?.status === 'Received' && !item?.rated && (
+              <Button
+                variant="outlined"
+                size="small"
+                color="inherit"
+                startIcon={<Iconify icon="solar:pen-bold" />}
+                sx={{ ml: 2 }}
+                onClick={() => {
+                  review.onTrue();
+                  setProductVariantId(item?.productVariantId);
+                  setProductId(item?.productId);
+                }}
+              >
+                Viết đánh giá
+              </Button>
+            )}
           </Stack>
         ))}
       </Scrollbar>
 
       {renderTotal}
+
+      <ProductReviewNewForm
+        productId={productId}
+        productVariantId={productVariantId}
+        open={review.value}
+        onClose={review.onFalse}
+      />
     </Card>
   );
 }

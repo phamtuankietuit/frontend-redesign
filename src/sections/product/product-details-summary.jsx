@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Box from '@mui/material/Box';
@@ -16,6 +16,10 @@ import { fCurrency, fMyShortenNumber } from 'src/utils/format-number';
 
 import { selectProduct } from 'src/state/product/product.slice';
 import { getProductOptionsAsync } from 'src/services/product/product.service';
+import {
+  addCartItemAsync,
+  getCartItemsAsync,
+} from 'src/services/cart/cart.service';
 
 import { Form } from 'src/components/hook-form';
 import { toast } from 'src/components/snackbar';
@@ -39,35 +43,28 @@ export function ProductDetailsSummary({
 
   const { productOptions } = useSelector(selectProduct);
 
-  const maxUnitPrice = Math.max(
-    ...productVariants.map((item) => item.unitPrice),
-  );
-
-  const minUnitPrice = Math.min(
-    ...productVariants.map((item) => item.unitPrice),
-  );
-
-  const maxQuantity = Math.max(
-    ...productVariants.map((item) => item.stockQuantity),
-  );
-
   const isOneVariant = product?.productVariants?.length === 1;
 
   const isSelectedOptions = useBoolean(false);
 
-  const defaultValues = {
-    id,
-    productName,
-    quantity: 1,
-    available: maxQuantity,
-    selectedOptions: null,
-    displayPrice: minUnitPrice,
-    price: minUnitPrice,
-  };
+  const defaultValues = useMemo(
+    () => ({
+      id: product?.id || '',
+      productName: product?.name || '',
+      quantity: 1,
+      available: product?.totalStockQuantity,
+      selectedOptions: null,
+      displayPrice: product?.minUnitPrice || 0,
+      displayRecommendedRetailPrice: product?.minRecommendedRetailPrice || 0,
+      price: product?.minUnitPrice || 0,
+      result: null,
+    }),
+    [product],
+  );
 
   const methods = useForm({ defaultValues });
 
-  const { reset, watch, control, setValue, handleSubmit } = methods;
+  const { reset, watch, setValue, handleSubmit } = methods;
 
   const values = watch();
 
@@ -92,10 +89,17 @@ export function ProductDetailsSummary({
 
   const handleFindMatchingVariant = (selectedVariants) => {
     if (selectedVariants.every((variant) => variant.selected !== null)) {
-      isSelectedOptions.onTrue();
       const result = findMatchingVariant(selectedVariants, productVariants);
-      setValue('displayPrice', result.unitPrice);
-      setValue('available', result.stockQuantity);
+      if (result) {
+        setValue('result', result);
+        isSelectedOptions.onTrue();
+        setValue('displayPrice', result.unitPrice);
+        setValue(
+          'displayRecommendedRetailPrice',
+          result.recommendedRetailPrice,
+        );
+        setValue('available', result.stockQuantity);
+      }
     }
   };
 
@@ -123,29 +127,113 @@ export function ProductDetailsSummary({
     }
   });
 
-  const handleAddCart = useCallback(() => {
+  const handleAddCart = useCallback(async () => {
     try {
-      if (!isOneVariant && !isSelectedOptions.value) {
+      const body = {
+        productVariantId: values?.result?.id,
+        quantity: values.quantity,
+      };
+
+      const oneVariant =
+        product?.productVariants?.length === 1 &&
+        product?.productVariants[0].optionValues.length === 0;
+
+      if (oneVariant) {
+        body.productVariantId = product?.productVariants[0]?.id;
+      }
+
+      // console.log('🚀 ~ handleAddCart ~ body:', body);
+
+      if (values?.result?.id || oneVariant) {
+        await dispatch(addCartItemAsync(body)).unwrap();
+        await dispatch(getCartItemsAsync()).unwrap();
+        toast.success('Thêm sản phẩm vào giỏ hàng thành công!');
+      } else {
         toast.warning('Vui lòng chọn phân loại sản phẩm!');
       }
+      // }
     } catch (error) {
       console.error(error);
     }
-  }, [isOneVariant, isSelectedOptions]);
+  }, [values, dispatch, product]);
 
-  const renderPrice =
-    minUnitPrice !== maxUnitPrice ? (
+  const renderRecommendedRetailPrice =
+    product?.minRecommendedRetailPrice !==
+    product?.maxRecommendedRetailPrice ? (
       <Stack direction="row" spacing={2} justifyContent="center">
-        <Box sx={{ typography: 'h5' }}>{fCurrency(minUnitPrice)}</Box>
-        <Box sx={{ typography: 'h5' }}>-</Box>
-        <Box sx={{ typography: 'h5' }}>{fCurrency(maxUnitPrice)}</Box>
+        <Box
+          component="span"
+          sx={{
+            color: 'text.disabled',
+            textDecoration: 'line-through',
+            mr: 0.5,
+          }}
+        >
+          {fCurrency(product?.minRecommendedRetailPrice)}
+        </Box>
+        <Box sx={{ typography: 'body2', color: 'text.disabled' }}>-</Box>
+        <Box
+          component="span"
+          sx={{
+            color: 'text.disabled',
+            textDecoration: 'line-through',
+            mr: 0.5,
+          }}
+        >
+          {fCurrency(product?.maxRecommendedRetailPrice)}
+        </Box>
       </Stack>
     ) : (
-      <Box sx={{ typography: 'h5' }}>{fCurrency(minUnitPrice)}</Box>
+      <Box
+        component="span"
+        sx={{
+          color: 'text.disabled',
+          textDecoration: 'line-through',
+          mr: 0.5,
+        }}
+      >
+        {fCurrency(product?.minRecommendedRetailPrice)}
+      </Box>
+    );
+
+  const renderPrice =
+    product?.minUnitPrice !== product?.maxUnitPrice ? (
+      <>
+        {!!product?.minRecommendedRetailPrice && renderRecommendedRetailPrice}
+
+        <Stack direction="row" spacing={2} justifyContent="center">
+          <Box sx={{ typography: 'h5' }}>
+            {fCurrency(product?.minUnitPrice)}
+          </Box>
+          <Box sx={{ typography: 'h5' }}>-</Box>
+          <Box sx={{ typography: 'h5' }}>
+            {fCurrency(product?.maxUnitPrice)}
+          </Box>
+        </Stack>
+      </>
+    ) : (
+      <>
+        {!!product?.minRecommendedRetailPrice && renderRecommendedRetailPrice}
+
+        <Box sx={{ typography: 'h5' }}>{fCurrency(product?.minUnitPrice)}</Box>
+      </>
     );
 
   const renderDisplayPrice = (
-    <Box sx={{ typography: 'h5' }}>{fCurrency(values.displayPrice)}</Box>
+    <>
+      <Box
+        component="span"
+        sx={{
+          color: 'text.disabled',
+          textDecoration: 'line-through',
+          mr: 0.5,
+        }}
+      >
+        {fCurrency(values.displayRecommendedRetailPrice)}
+      </Box>
+
+      <Box sx={{ typography: 'h5' }}>{fCurrency(values.displayPrice)}</Box>
+    </>
   );
 
   const renderShare = (
@@ -190,7 +278,6 @@ export function ProductDetailsSummary({
 
       <MyOption
         name={`selectedOptions[${index}].selected`}
-        control={control}
         values={option.values}
       />
     </Stack>
@@ -257,13 +344,13 @@ export function ProductDetailsSummary({
     >
       <Rating
         size="small"
-        value={4.3}
+        value={product?.averageRating || 0}
         precision={0.1}
         readOnly
         sx={{ mr: 1 }}
       />
 
-      {`(${fMyShortenNumber(23000)} đánh giá)`}
+      {`(${fMyShortenNumber(Number(product?.ratingsCount || 0))} đánh giá)`}
     </Stack>
   );
 
@@ -294,7 +381,7 @@ export function ProductDetailsSummary({
 
           {!isOneVariant && !isSelectedOptions.value && renderPrice}
 
-          {isSelectedOptions.value && renderDisplayPrice}
+          {!isOneVariant && isSelectedOptions.value && renderDisplayPrice}
         </Stack>
 
         <Divider sx={{ borderStyle: 'dashed' }} />

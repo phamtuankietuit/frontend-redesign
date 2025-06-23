@@ -18,6 +18,9 @@ import { AuthGuard } from 'src/auth/guard';
 
 const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account'));
 const OrderListPage = lazy(() => import('src/pages/profile/order/list'));
+const OrderDetailsPage = lazy(
+  () => import('src/pages/dashboard/order/details'),
+);
 
 // ----------------------------------------------------------------------
 
@@ -70,7 +73,13 @@ export const profileRoutes = [
           },
         ],
       },
-      { path: 'orders', element: <OrderListPage /> },
+      {
+        path: 'orders',
+        children: [
+          { element: <OrderListPage />, index: true },
+          { path: ':id', element: <OrderDetailsPage /> },
+        ],
+      },
     ],
   },
 ];

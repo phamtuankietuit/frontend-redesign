@@ -15,7 +15,15 @@ import { ScrollToViewTemplate } from '../../component-template';
 
 // ----------------------------------------------------------------------
 
-const COLORS = ['default', 'primary', 'secondary', 'info', 'success', 'warning', 'error'];
+const COLORS = [
+  'default',
+  'primary',
+  'secondary',
+  'info',
+  'success',
+  'warning',
+  'error',
+];
 
 const PLACEMENTS = ['top', 'start', 'bottom', 'end'];
 
@@ -48,8 +56,16 @@ export function RadioButtonView() {
       component: (
         <ComponentBlock>
           <RadioGroup row defaultValue="g">
-            <FormControlLabel value="g" control={<Radio size="medium" />} label="Normal" />
-            <FormControlLabel value="p" control={<Radio size="small" />} label="Small" />
+            <FormControlLabel
+              value="g"
+              control={<Radio size="medium" />}
+              label="Normal"
+            />
+            <FormControlLabel
+              value="p"
+              control={<Radio size="small" />}
+              label="Small"
+            />
           </RadioGroup>
         </ComponentBlock>
       ),
@@ -109,7 +125,10 @@ export function RadioButtonView() {
       <ComponentHero>
         <CustomBreadcrumbs
           heading="Radio Buttons"
-          links={[{ name: 'Components', href: paths.components }, { name: 'Radio Buttons' }]}
+          links={[
+            { name: 'Components', href: paths.components },
+            { name: 'Radio Buttons' },
+          ]}
           moreLink={['https://mui.com/components/radio-buttons']}
         />
       </ComponentHero>

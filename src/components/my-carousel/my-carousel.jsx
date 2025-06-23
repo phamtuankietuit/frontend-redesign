@@ -8,6 +8,9 @@ import {
   useCarousel,
   CarouselArrowBasicButtons,
 } from 'src/components/carousel';
+import { Stack } from '@mui/material';
+import { fCurrency } from 'src/utils/format-number';
+import { fDate, formatStr } from 'src/utils/format-time';
 
 // ----------------------------------------------------------------------
 
@@ -21,7 +24,7 @@ export function MyCarousel({ title, list, sx, ...other }) {
   return (
     <Box sx={sx} {...other}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1, color: 'white' }}>
           {title}
         </Typography>
 
@@ -55,83 +58,91 @@ export function MyCarousel({ title, list, sx, ...other }) {
 
 function CarouselItem({ item, sx, index, ...other }) {
   const renderImage = (
+    // <Box
+    //   sx={{
+    //     px: 1,
+    //     pt: 1,
+    //   }}
+    // >
     <Box
       sx={{
         px: 1,
         pt: 1,
       }}
     >
-      {index % 2 === 0 ? (
-        <Box
-          sx={{
-            backgroundColor: 'info.main',
-            borderRadius: 1.5,
-            width: '100%',
-            height: '128px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'white',
-          }}
-        >
-          <Iconify width={72} icon="bxs:truck" />
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            backgroundColor: 'warning.main',
-            borderRadius: 1.5,
-            width: '100%',
-            height: '128px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'white',
-          }}
-        >
-          <Iconify width={72} icon="iconamoon:discount-fill" />
-        </Box>
-      )}
+      <Box
+        sx={{
+          backgroundColor:
+            item?.voucherType === 2 ? 'info.main' : 'warning.main',
+          borderRadius: 1.5,
+          width: '100%',
+          height: '128px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'white',
+          px: 1,
+        }}
+      >
+        <Iconify
+          width={72}
+          icon={
+            item?.voucherType === 2 ? 'bxs:truck' : 'iconamoon:discount-fill'
+          }
+        />
+      </Box>
     </Box>
+    // ) : (
+    //   <Box
+    //     sx={{
+    //       backgroundColor: 'warning.main',
+    //       borderRadius: 1.5,
+    //       width: '100%',
+    //       height: '128px',
+    //       display: 'flex',
+    //       justifyContent: 'center',
+    //       alignItems: 'center',
+    //       color: 'white',
+    //     }}
+    //   >
+    //     <Iconify width={72} icon="iconamoon:discount-fill" />
+    //   </Box>
+    // )}
+    // </Box>
   );
+
+  const getName = (voucherType) => {
+    if (voucherType === 2) {
+      return `PHÍ VẬN CHUYỂN`;
+    }
+    return `TRÊN ĐƠN HÀNG`;
+  };
+
+  const getValue = (value, voucherType) => {
+    if (voucherType === 1) {
+      return `${value}%`;
+    }
+    return `${value}đ`;
+  };
 
   return (
     <Card sx={{ width: 1, ...sx }} {...other}>
       {renderImage}
 
-      <Box sx={{ px: 2, py: 2.5 }}>
-        {index % 2 === 0 ? (
-          <>
-            <Typography variant="subtitle1" color="inherit" sx={{ pb: 1 }}>
-              GIẢM 5% PHÍ VẬN CHUYỂN
-            </Typography>
-            <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
-              Đơn hàng từ 500.000đ
-            </Typography>
-            <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
-              Giảm tối đa 50.000đ
-            </Typography>
-            <Typography variant="subtitle2" color="grey.500">
-              01/08/2024 - 31/08/2024
-            </Typography>
-          </>
-        ) : (
-          <>
-            <Typography variant="subtitle1" color="inherit" sx={{ pb: 1 }}>
-              GIẢM 5% CHO ĐƠN HÀNG ĐẦU TIÊN
-            </Typography>
-            <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
-              Đơn hàng từ 500.000đ
-            </Typography>
-            <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
-              Giảm tối đa 50.000đ
-            </Typography>
-            <Typography variant="subtitle2" color="grey.500">
-              01/08/2024 - 31/08/2024
-            </Typography>
-          </>
-        )}
-      </Box>
+      <Stack sx={{ p: 2 }}>
+        <Typography variant="subtitle1" color="inherit" sx={{ pb: 1 }}>
+          {`GIẢM ${getValue(item?.value, item?.voucherType)} ${getName(item?.voucherType)}`}
+        </Typography>
+        <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
+          {`Đơn hàng từ ${fCurrency(item?.minimumSpend)}`}
+        </Typography>
+        <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
+          {`Giảm tối đa ${fCurrency(item?.maximumDiscountValue)}`}
+        </Typography>
+        <Typography variant="subtitle2" color="grey.500">
+          {`${fDate(item?.startTime, formatStr.myFormat.date)} - ${fDate(item?.endTime, formatStr.myFormat.date)}`}
+        </Typography>
+      </Stack>
     </Card>
   );
 }

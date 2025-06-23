@@ -8,22 +8,24 @@ import { useTabs } from 'src/hooks/use-tabs';
 
 import { selectProductType } from 'src/state/product-type/product-type.slice';
 import { getProductTypesAsync } from 'src/services/product-type/product-type.service';
-import {
-  _appFeatured,
-  _appFeaturedMini,
-  _appFeaturedMini2,
-  _ecommerceBestSalesman,
-} from 'src/_mock';
+import { _appFeatured, _ecommerceBestSalesman } from 'src/_mock';
 
 import { Iconify } from 'src/components/iconify';
 import { CustomTabs } from 'src/components/custom-tabs';
-import { BackToTop } from 'src/components/animate/back-to-top';
 import {
   ScrollProgress,
   useScrollProgress,
 } from 'src/components/animate/scroll-progress';
 
-import { ProductItem } from 'src/sections/product/product-item';
+import { selectCampaign } from 'src/state/campaign/campaign.slice';
+import { selectHome } from 'src/state/home/home.slice';
+import { getBannersAsync } from 'src/services/banner/banner.service';
+import {
+  getProductsAsync,
+  getProductsTopSellingMonthlyAsync,
+  getProductsTopSellingWeeklyAsync,
+  getProductsTrendyAsync,
+} from 'src/services/product/product.service';
 import { ProductList } from 'src/sections/product/product-list';
 import { EcommerceBestSalesman } from 'src/sections/overview/e-commerce/ecommerce-best-salesman';
 
@@ -35,28 +37,40 @@ import { AppFeatured } from '../../overview/app/app-featured';
 export function MyHomeView() {
   const dispatch = useDispatch();
   const {
-    productTypes,
     homePage: { tabs },
   } = useSelector(selectProductType);
+
+  const { banners } = useSelector(selectCampaign);
+
+  const { trendy, trendyLoading, homeProducts, homeProductsLoading } =
+    useSelector(selectHome);
 
   const pageProgress = useScrollProgress();
 
   const customTabs = useTabs(tabs[0]?.value);
 
   useEffect(() => {
-    if (productTypes.length === 0) {
-      dispatch(getProductTypesAsync());
-    }
-  }, [dispatch, productTypes]);
-
-  useEffect(() => {
-    if (tabs.length > 0) {
-      customTabs.setValue(tabs[0].value);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, tabs]);
+    dispatch(getProductTypesAsync());
+  }, [dispatch]);
 
   const listProducts = [...Array(8)].map((_) => ({ ...product }));
+
+  useEffect(() => {
+    dispatch(getBannersAsync({ pageNumber: 1, pageSize: 100 }));
+    dispatch(getProductsTrendyAsync());
+    dispatch(getProductsTopSellingWeeklyAsync());
+    dispatch(getProductsTopSellingMonthlyAsync());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(
+      getProductsAsync({
+        pageNumber: 1,
+        pageSize: 10,
+        productTypeIds: [customTabs.value],
+      }),
+    );
+  }, [customTabs.value, dispatch]);
 
   return (
     <>
@@ -65,8 +79,6 @@ export function MyHomeView() {
         progress={pageProgress.scrollYProgress}
         sx={{ position: 'fixed' }}
       />
-
-      <BackToTop />
 
       <Stack
         sx={{ position: 'relative', mt: 2, bgcolor: 'background.default' }}
@@ -83,31 +95,7 @@ export function MyHomeView() {
           }}
           spacing={3}
         >
-          <Grid container spacing={1}>
-            <Grid item xs={12} sm={8.2}>
-              <AppFeatured list={_appFeatured} />
-            </Grid>
-            <Grid
-              item
-              sm={3.8}
-              sx={{
-                display: {
-                  xs: 'none',
-                  sm: 'block',
-                },
-              }}
-            >
-              <Box
-                height={1}
-                display="flex"
-                flexDirection="column"
-                justifyContent="space-between"
-              >
-                <AppFeatured list={_appFeaturedMini} />
-                <AppFeatured list={_appFeaturedMini2} />
-              </Box>
-            </Grid>
-          </Grid>
+          <AppFeatured list={banners} />
         </Stack>
 
         <Stack
@@ -142,9 +130,10 @@ export function MyHomeView() {
 
             <Stack spacing={3} sx={{ p: 2 }}>
               <ProductList
-                products={listProducts}
+                products={trendy}
                 isShowCart={false}
                 isShowPagination={false}
+                loading={trendyLoading}
               />
             </Stack>
           </Card>
@@ -202,15 +191,16 @@ export function MyHomeView() {
 
               <Stack spacing={3} sx={{ p: 2 }}>
                 <ProductList
-                  products={listProducts}
+                  products={homeProducts}
                   isShowCart={false}
                   isShowPagination={false}
+                  loading={homeProductsLoading}
                 />
               </Stack>
             </Card>
           )}
 
-          <Card
+          {/* <Card
             sx={{
               backgroundColor: '#85e19e',
               color: 'white',
@@ -238,7 +228,7 @@ export function MyHomeView() {
                 isShowPagination={false}
               />
             </Stack>
-          </Card>
+          </Card> */}
         </Stack>
 
         <HomeFAQs />

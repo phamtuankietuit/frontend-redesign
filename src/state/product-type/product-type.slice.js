@@ -13,7 +13,10 @@ const initialState = {
     listAttributes: [],
   },
   homePage: {
-    tabs: [],
+    tabs: [{
+      value: 1,
+      label: 'Tất Cả Nhóm Sản Phẩm',
+    }],
   },
   treeView: {
     items: []
@@ -32,10 +35,16 @@ const productTypeSlice = createSlice({
     builder
       .addCase(getProductTypesAsync.fulfilled, (state, action) => {
         state.productTypes = action.payload;
-        state.homePage.tabs = action.payload.map((item) => ({
-          value: item.id,
-          label: item.displayName,
-        }));
+        state.homePage.tabs = [
+          {
+            value: 1,
+            label: 'Tất Cả Nhóm Sản Phẩm',
+          },
+          ...action.payload[0]?.childProductTypes?.map((item) => ({
+            value: item.id,
+            label: item.displayName,
+          })) || []
+        ];
       })
       .addCase(getProductTypesFlattenAsync.fulfilled, (state, action) => {
         state.productTypesFlatten = action.payload;

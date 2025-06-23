@@ -19,6 +19,9 @@ const MaintenancePage = lazy(() => import('src/pages/maintenance'));
 const ProductListPage = lazy(() => import('src/pages/product/list'));
 const ProductDetailsPage = lazy(() => import('src/pages/product/details'));
 const ProductCheckoutPage = lazy(() => import('src/pages/product/checkout'));
+const ImageSearchProductPage = lazy(
+  () => import('src/pages/product/image-search'),
+);
 // Blog
 const PostListPage = lazy(() => import('src/pages/post/list'));
 const PostDetailsPage = lazy(() => import('src/pages/post/details'));
@@ -28,6 +31,12 @@ const Page403 = lazy(() => import('src/pages/error/403'));
 const Page404 = lazy(() => import('src/pages/error/404'));
 // Blank
 const BlankPage = lazy(() => import('src/pages/blank'));
+// Cart
+const CartPage = lazy(() => import('src/pages/cart/list'));
+// Campaign
+const CampaignPage = lazy(() => import('src/pages/campaign'));
+// Place Order Success
+const PlaceOrderStatusPage = lazy(() => import('src/pages/place-order/status'));
 
 // ----------------------------------------------------------------------
 
@@ -63,13 +72,21 @@ export const myMainRoutes = [
             element: <BlankPage />,
           },
           {
+            path: 'campaign/:id',
+            element: <CampaignPage />,
+          },
+          {
             path: 'products',
             children: [
               { element: <ProductListPage />, index: true },
-              { path: 'list', element: <ProductListPage /> },
               { path: ':id', element: <ProductDetailsPage /> },
               { path: 'checkout', element: <ProductCheckoutPage /> },
+              { path: 'image-search', element: <ImageSearchProductPage /> },
             ],
+          },
+          {
+            path: 'cart',
+            children: [{ element: <CartPage />, index: true }],
           },
           {
             path: 'post',
@@ -116,6 +133,14 @@ export const myMainRoutes = [
       { path: '500', element: <Page500 /> },
       { path: '404', element: <Page404 /> },
       { path: '403', element: <Page403 /> },
+      {
+        path: 'place-order',
+        element: (
+          <SimpleLayout content={{ compact: true }}>
+            <PlaceOrderStatusPage />
+          </SimpleLayout>
+        ),
+      },
     ],
   },
 ];

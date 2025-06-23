@@ -9,62 +9,43 @@ import Tooltip from '@mui/material/Tooltip';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import {
-  fCurrency,
-  fMyShortenNumber,
-  fShortenNumber,
-} from 'src/utils/format-number';
+import { fCurrency, fMyShortenNumber } from 'src/utils/format-number';
 
-import { Label } from 'src/components/label';
 import { Image } from 'src/components/image';
 import { Iconify } from 'src/components/iconify';
-import { ColorPreview } from 'src/components/color-utils';
-import { Logo } from 'src/components/logo';
-import { useCheckoutContext } from '../checkout/context';
 
 // ----------------------------------------------------------------------
 
-export function ProductItem({ product, isShowCart = true }) {
-  const checkout = useCheckoutContext();
-
+export function ProductItem({ product, isShowCart = false }) {
   const {
     id,
     name,
     thumbnailImageUrl,
-    price,
-    colors,
-    available,
-    sizes,
     totalStockQuantity,
     minUnitPrice,
     minRecommendedRetailPrice,
     averageRating,
-    priceSale,
-    newLabel,
-    saleLabel,
-    totalRatings,
-    totalReviews,
+    soldCount,
+    ratingsCount,
   } = product;
 
   const linkTo = paths.product.details(id);
 
-  const handleAddCart = async () => {
-    const newProduct = {
-      id,
-      name,
-      thumbnailImageUrl,
-      available,
-      price,
-      colors: [colors[0]],
-      size: sizes[0],
-      quantity: 1,
-    };
-    try {
-      checkout.onAddToCart(newProduct);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const handleAddCart = async () => {
+  //   const newProduct = {
+  //     id,
+  //     name,
+  //     thumbnailImageUrl,
+  //     available,
+  //     price,
+  //     quantity: 1,
+  //   };
+  //   try {
+  //     checkout.onAddToCart(newProduct);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   // const renderLabels = (newLabel.enabled || saleLabel.enabled) && (
   //   <Stack
@@ -98,7 +79,7 @@ export function ProductItem({ product, isShowCart = true }) {
           color="warning"
           size="medium"
           className="add-cart-btn"
-          onClick={handleAddCart}
+          // onClick={handleAddCart}
           sx={{
             right: 16,
             bottom: 16,
@@ -153,25 +134,26 @@ export function ProductItem({ product, isShowCart = true }) {
         >
           <Rating
             size="small"
-            value={4.5}
+            value={averageRating || 0}
             precision={0.1}
             readOnly
             sx={{ mr: 1 }}
           />
-          {`(${fMyShortenNumber(32000)})`}
+
+          {!!ratingsCount && `(${fMyShortenNumber(ratingsCount)})`}
         </Stack>
 
         <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
-          {!!minUnitPrice && (
+          {!!minRecommendedRetailPrice && (
             <Box
               component="span"
               sx={{ color: 'text.disabled', textDecoration: 'line-through' }}
             >
-              {fCurrency(minUnitPrice)}
+              {fCurrency(minRecommendedRetailPrice)}
             </Box>
           )}
 
-          <Box component="span">{fCurrency(minRecommendedRetailPrice)}</Box>
+          <Box component="span">{fCurrency(minUnitPrice)}</Box>
         </Stack>
       </Stack>
     </Stack>

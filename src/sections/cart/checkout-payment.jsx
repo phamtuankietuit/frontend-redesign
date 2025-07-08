@@ -72,7 +72,7 @@ export function CheckoutPayment() {
 
   const checkout = {};
 
-  const defaultValues = { delivery: checkout.shipping, payment: '' };
+  const defaultValues = { delivery: checkout.shipping, payment: 1 };
 
   const methods = useForm({
     resolver: zodResolver(PaymentSchema),
@@ -138,14 +138,14 @@ export function CheckoutPayment() {
             sx={{ my: 3 }}
           />
 
-          <Button
+          {/* <Button
             size="small"
             color="inherit"
             onClick={checkout.onBackStep}
             startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
           >
             Trở lại
-          </Button>
+          </Button> */}
         </Grid>
 
         <Grid xs={12} md={4}>

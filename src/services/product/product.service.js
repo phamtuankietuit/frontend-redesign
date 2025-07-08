@@ -129,8 +129,8 @@ export const getProductsTopSellingWeeklyAsync = createAsyncThunk(
 
 export const getProductsTopSellingMonthlyAsync = createAsyncThunk(
     'product/getProductsTopSellingMonthlyAsync',
-    async () => {
-        const response = await GET(`/products/top-selling/monthly`);
+    async (params) => {
+        const response = await GET(`/products/top-selling/monthly`, { params });
         return response.data;
     }
 );

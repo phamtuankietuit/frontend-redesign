@@ -25,6 +25,8 @@ const initialState = {
   freeShippingSelected: null,
   shippingDiscount: 0,
   deliveryMethods: [],
+  // discount info
+  discountInfo: null,
 };
 
 const cartSlice = createSlice({
@@ -68,6 +70,12 @@ const cartSlice = createSlice({
       state.freeShippingSelected = null;
       state.shippingDiscount = 0;
     },
+    resetStep1: (state) => {
+      state.addressSelected = null;
+      state.shippingFee = 0;
+      state.freeShippingSelected = null;
+      state.shippingDiscount = 0;
+    },
     onSelectAllRows: (state, action) => {
       if (action.payload.checked) {
         state.selectedRowIds = action.payload.inputValue;
@@ -81,12 +89,14 @@ const cartSlice = createSlice({
         ? state.selectedRowIds.filter((value) => value !== inputValue)
         : [...state.selectedRowIds, inputValue];
       state.selectedRowIds = newSelected;
+    },
+    setDiscountInfo: (state, action) => {
+      state.discountInfo = action.payload;
     }
   },
   extraReducers: (builder) => {
     builder
       .addCase(getCartItemsAsync.pending, (state) => {
-        state.items = [];
         state.totalCount = 0;
         state.loading = true;
       })
@@ -154,6 +164,8 @@ export const
     goToStep,
     pickDiscount,
     pickFreeShipping,
+    setDiscountInfo,
+    resetStep1,
   } = cartSlice.actions;
 
 export const selectCart = (state) => state.cart;

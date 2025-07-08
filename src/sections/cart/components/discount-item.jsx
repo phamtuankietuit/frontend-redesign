@@ -1,5 +1,13 @@
-import { Box, Button, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { Iconify } from 'src/components/iconify';
+import { useBoolean } from 'src/hooks/use-boolean';
 import { fCurrency } from 'src/utils/format-number';
 import { fDate, formatStr } from 'src/utils/format-time';
 
@@ -7,23 +15,9 @@ export function DiscountItem({
   discount,
   selected,
   disabled = false,
-  shipping = false,
   onSelect,
+  onClickInfo,
 }) {
-  const getName = (voucherType) => {
-    if (voucherType === 2) {
-      return `PHÍ VẬN CHUYỂN`;
-    }
-    return `TRÊN ĐƠN HÀNG`;
-  };
-
-  const getValue = (value, voucherType) => {
-    if (voucherType === 1) {
-      return `${value}%`;
-    }
-    return `${value}đ`;
-  };
-
   return (
     <Tooltip title={discount?.applyToProductTypeName}>
       <Stack
@@ -81,7 +75,7 @@ export function DiscountItem({
                 textOverflow: 'ellipsis',
               }}
             >
-              {`GIẢM ${getValue(discount?.value, discount?.voucherType)} ${getName(discount?.voucherType)}`}
+              {discount?.name || 'Không có tên'}
             </Typography>
             <Typography
               variant="subtitle2"
@@ -98,19 +92,6 @@ export function DiscountItem({
             </Typography>
             <Typography
               variant="subtitle2"
-              color="grey.600"
-              sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {`Giảm tối đa ${fCurrency(discount?.maximumDiscountValue)}`}
-            </Typography>
-            <Typography
-              variant="subtitle2"
               color="grey.500"
               sx={{
                 display: '-webkit-box',
@@ -124,17 +105,23 @@ export function DiscountItem({
             </Typography>
           </Stack>
 
-          {onSelect && !disabled && !selected && (
-            <Button
-              variant="outlined"
-              size="small"
-              color="warning"
-              startIcon={<Iconify icon="solar:star-bold" />}
-              onClick={onSelect}
-            >
-              Chọn
-            </Button>
-          )}
+          <Stack justifyContent="flex-end" alignItems="flex-end" spacing={1}>
+            {onSelect && !disabled && !selected && (
+              <Button
+                variant="outlined"
+                size="small"
+                color="warning"
+                startIcon={<Iconify icon="solar:star-bold" />}
+                onClick={onSelect}
+              >
+                Chọn
+              </Button>
+            )}
+
+            <IconButton sx={{ width: 'fit-content' }} onClick={onClickInfo}>
+              <Iconify icon="material-symbols:info-rounded" />
+            </IconButton>
+          </Stack>
         </Stack>
       </Stack>
     </Tooltip>

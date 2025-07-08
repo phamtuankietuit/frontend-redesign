@@ -3,8 +3,10 @@ import { GET, PATCH } from "../axios";
 
 export const getOrdersAsync = createAsyncThunk(
   'order/getOrdersAsync',
-  async () => {
-    const response = await GET(`/orders`);
+  async (params) => {
+    const response = await GET(`/orders`, {
+      params
+    });
     return response.data;
   }
 );
@@ -22,6 +24,14 @@ export const confirmReceivedOrderAsync = createAsyncThunk(
   'order/confirmReceivedOrderAsync',
   async ({ id, body }) => {
     const response = await PATCH(`/orders/${id}/confirm-received`, body);
+    return response.data;
+  }
+);
+
+export const updateOrderStatusAsync = createAsyncThunk(
+  'order/updateOrderStatusAsync',
+  async ({ id, body }) => {
+    const response = await PATCH(`/orders/${id}/update-status`, body);
     return response.data;
   }
 );

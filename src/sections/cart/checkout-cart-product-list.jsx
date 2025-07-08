@@ -7,7 +7,11 @@ import { Iconify } from 'src/components/iconify';
 import { toast } from 'sonner';
 
 import { Scrollbar } from 'src/components/scrollbar';
-import { TableHeadCustom, TableSelectedAction } from 'src/components/table';
+import {
+  TableHeadCustom,
+  TableSelectedAction,
+  TableSkeleton,
+} from 'src/components/table';
 
 import { CustomPopover } from 'src/components/custom-popover';
 import {
@@ -41,7 +45,7 @@ export function CheckoutCartProductList() {
 
   const isFirstRender = useRef(true);
 
-  const { items, selectedRowIds } = useSelector(selectCart);
+  const { items, selectedRowIds, loading } = useSelector(selectCart);
 
   const [rowPopover, setRowPopover] = useState(null);
 
@@ -49,6 +53,9 @@ export function CheckoutCartProductList() {
     async (id) => {
       try {
         const body = {
+          selectedItemIds: selectedRowIds.filter(
+            (selectedId) => selectedId !== id,
+          ),
           actionType: UPDATE_CART_ACTION_TYPE.REMOVE,
           updateItems: [
             {
@@ -59,6 +66,11 @@ export function CheckoutCartProductList() {
 
         await dispatch(updateCartItemsAsync(body)).unwrap();
 
+        // Remove from selectedRowIds if it was selected
+        if (selectedRowIds.includes(id)) {
+          dispatch(onSelectRow(id));
+        }
+
         dispatch(getCartItemsAsync());
 
         toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
@@ -67,7 +79,7 @@ export function CheckoutCartProductList() {
         toast.error('Có lỗi xảy ra khi xóa sản phẩm khỏi giỏ!');
       }
     },
-    [dispatch],
+    [dispatch, selectedRowIds],
   );
 
   const handleDeleteSelectedRows = useCallback(async () => {
@@ -82,7 +94,9 @@ export function CheckoutCartProductList() {
 
         await dispatch(updateCartItemsAsync(body)).unwrap();
 
-        dispatch(getCartItemsAsync());
+        await dispatch(resetSelection()).unwrap();
+
+        await dispatch(getCartItemsAsync()).unwrap();
 
         toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
       }
@@ -113,6 +127,7 @@ export function CheckoutCartProductList() {
   const handleIncrease = useCallback(
     async (row) => {
       const body = {
+        selectedItemIds: selectedRowIds,
         actionType: UPDATE_CART_ACTION_TYPE.UPDATE_QUANTITY,
         updateItems: [
           {
@@ -125,7 +140,7 @@ export function CheckoutCartProductList() {
 
       await dispatch(updateCartItemsAsync(body)).unwrap();
     },
-    [dispatch],
+    [dispatch, selectedRowIds],
   );
 
   const handleDecrease = useCallback(
@@ -135,6 +150,7 @@ export function CheckoutCartProductList() {
       }
 
       const body = {
+        selectedItemIds: selectedRowIds,
         actionType: UPDATE_CART_ACTION_TYPE.UPDATE_QUANTITY,
         updateItems: [
           {
@@ -147,7 +163,7 @@ export function CheckoutCartProductList() {
 
       await dispatch(updateCartItemsAsync(body)).unwrap();
     },
-    [dispatch],
+    [dispatch, selectedRowIds],
   );
 
   useEffect(() => {
@@ -225,6 +241,9 @@ export function CheckoutCartProductList() {
               onPopoverOpen={(event) => handleOpenRowPopover(event, row)}
             />
           ))}
+
+          {loading &&
+            [...Array(5)].map((_, index) => <TableSkeleton key={index} />)}
         </TableBody>
       </Table>
 

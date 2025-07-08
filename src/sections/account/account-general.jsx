@@ -208,7 +208,7 @@ export function AccountGeneral() {
                     width: 'fit-content',
                   }}
                 >
-                  {user?.customerTypeName || 'Thường'}
+                  {user?.customerType?.name || 'Thường'}
                 </Label>
               </Stack>
             </Box>

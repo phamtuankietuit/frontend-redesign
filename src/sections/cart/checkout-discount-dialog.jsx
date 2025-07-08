@@ -10,11 +10,15 @@ import {
   pickDiscount,
   pickFreeShipping,
   selectCart,
+  setDiscountInfo,
 } from 'src/state/cart/cart.slice';
-import { getPromotionsAsync } from 'src/services/promotion/promotion.service';
+import {
+  getDiscountPromotionsAsync,
+  getFreeShippingPromotionsAsync,
+} from 'src/services/promotion/promotion.service';
 import { updateCartItemsAsync } from 'src/services/cart/cart.service';
 import { checkoutConfirm } from 'src/services/checkout/checkout.service';
-import { Divider, Typography } from '@mui/material';
+import { CircularProgress, Divider, Typography } from '@mui/material';
 import { DiscountItem } from './components/discount-item';
 import { UPDATE_CART_ACTION_TYPE } from './constants';
 
@@ -26,9 +30,14 @@ export function CheckoutDiscountDialog({ open, onClose }) {
   const { step, selectedRowIds, freeShippingSelected, discountSelected } =
     useSelector(selectCart);
 
-  const { promotions } = useSelector(selectPromotion);
+  const {
+    discountPromotions,
+    freeShippingPromotions,
+    discountPromotionsLoading,
+    freeShippingPromotionsLoading,
+  } = useSelector(selectPromotion);
 
-  const handleSelect = (promotion) => {
+  const handleSelect = async (promotion) => {
     if (step === 0) {
       dispatch(pickDiscount(promotion));
       const body = {
@@ -39,13 +48,19 @@ export function CheckoutDiscountDialog({ open, onClose }) {
 
       dispatch(updateCartItemsAsync(body));
     } else {
-      dispatch(pickFreeShipping(promotion));
-
       const body = {
         itemIds: selectedRowIds,
         orderDiscountVoucherId: discountSelected?.id || undefined,
         shippingDiscountVoucherId: promotion?.id || undefined,
       };
+
+      if (promotion?.voucherType === 2) {
+        dispatch(pickFreeShipping(promotion));
+      } else {
+        dispatch(pickDiscount(promotion));
+        body.shippingDiscountVoucherId = freeShippingSelected?.id || undefined;
+        body.orderDiscountVoucherId = promotion?.id || undefined;
+      }
 
       dispatch(checkoutConfirm(body));
     }
@@ -54,16 +69,34 @@ export function CheckoutDiscountDialog({ open, onClose }) {
   };
 
   useEffect(() => {
-    dispatch(
-      getPromotionsAsync({
-        pageNumber: 1,
-        pageSize: 100,
-        voucherType: step === 0 ? 1 : 2,
-        selectedCartItemIds: selectedRowIds,
-        status: 2,
-      }),
-    );
+    if (selectedRowIds.length > 0) {
+      dispatch(
+        getDiscountPromotionsAsync({
+          pageNumber: 1,
+          pageSize: 100,
+          voucherType: 1,
+          selectedCartItemIds: selectedRowIds,
+          status: 2,
+        }),
+      );
+
+      if (step === 2) {
+        dispatch(
+          getFreeShippingPromotionsAsync({
+            pageNumber: 1,
+            pageSize: 100,
+            voucherType: 2,
+            selectedCartItemIds: selectedRowIds,
+            status: 2,
+          }),
+        );
+      }
+    }
   }, [step, dispatch, selectedRowIds]);
+
+  const handleClickDiscountInfo = (info) => {
+    dispatch(setDiscountInfo(info));
+  };
 
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
@@ -75,21 +108,25 @@ export function CheckoutDiscountDialog({ open, onClose }) {
 
       <DialogContent dividers sx={{ p: 2, bgcolor: 'grey.200' }}>
         <Stack spacing={1}>
-          {promotions.map((promotion, index) => (
+          {discountPromotions.map((promotion, index) => (
             <DiscountItem
               key={promotion.id}
               discount={promotion}
-              selected={
-                promotion.id === discountSelected?.id ||
-                promotion.id === freeShippingSelected?.id
-              }
+              selected={promotion.id === discountSelected?.id}
               onSelect={() => handleSelect(promotion)}
               disabled={promotion.canApply === false}
+              onClickInfo={() => handleClickDiscountInfo(promotion)}
             />
           ))}
         </Stack>
 
-        {promotions.length === 0 && (
+        {discountPromotionsLoading && (
+          <Stack justifyContent="center" alignItems="center">
+            <CircularProgress />
+          </Stack>
+        )}
+
+        {discountPromotions.length === 0 && (
           <Stack
             sx={{
               p: 2,
@@ -98,7 +135,44 @@ export function CheckoutDiscountDialog({ open, onClose }) {
             }}
           >
             <Typography variant="body2">
-              Không có khuyến mãi nào phù hợp với đơn hàng của bạn.
+              Không có khuyến mãi nào phù hợp với đơn hàng.
+            </Typography>
+          </Stack>
+        )}
+
+        {step === 2 && <Divider sx={{ my: 2, borderStyle: 'dashed' }} />}
+
+        {step === 2 && (
+          <Stack spacing={1}>
+            {freeShippingPromotions.map((promotion, index) => (
+              <DiscountItem
+                key={promotion.id}
+                discount={promotion}
+                selected={promotion.id === freeShippingSelected?.id}
+                onSelect={() => handleSelect(promotion)}
+                disabled={promotion.canApply === false}
+                onClickInfo={() => handleClickDiscountInfo(promotion)}
+              />
+            ))}
+          </Stack>
+        )}
+
+        {step === 2 && freeShippingPromotionsLoading && (
+          <Stack justifyContent="center" alignItems="center">
+            <CircularProgress />
+          </Stack>
+        )}
+
+        {step === 2 && freeShippingPromotions.length === 0 && (
+          <Stack
+            sx={{
+              p: 2,
+              textAlign: 'center',
+              color: 'text.secondary',
+            }}
+          >
+            <Typography variant="body2">
+              Không có giảm giá vận chuyển nào phù hợp với đơn hàng.
             </Typography>
           </Stack>
         )}

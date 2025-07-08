@@ -92,52 +92,18 @@ function CarouselItem({ item, sx, index, ...other }) {
         />
       </Box>
     </Box>
-    // ) : (
-    //   <Box
-    //     sx={{
-    //       backgroundColor: 'warning.main',
-    //       borderRadius: 1.5,
-    //       width: '100%',
-    //       height: '128px',
-    //       display: 'flex',
-    //       justifyContent: 'center',
-    //       alignItems: 'center',
-    //       color: 'white',
-    //     }}
-    //   >
-    //     <Iconify width={72} icon="iconamoon:discount-fill" />
-    //   </Box>
-    // )}
-    // </Box>
   );
-
-  const getName = (voucherType) => {
-    if (voucherType === 2) {
-      return `PHÍ VẬN CHUYỂN`;
-    }
-    return `TRÊN ĐƠN HÀNG`;
-  };
-
-  const getValue = (value, voucherType) => {
-    if (voucherType === 1) {
-      return `${value}%`;
-    }
-    return `${value}đ`;
-  };
 
   return (
     <Card sx={{ width: 1, ...sx }} {...other}>
       {renderImage}
 
       <Stack sx={{ p: 2 }}>
-        <Typography variant="subtitle1" color="inherit" sx={{ pb: 1 }}>
-          {`GIẢM ${getValue(item?.value, item?.voucherType)} ${getName(item?.voucherType)}`}
+        <Typography variant="subtitle1" color="inherit">
+          {item?.name}
         </Typography>
-        <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
+        <Typography variant="subtitle2" color="grey.600">
           {`Đơn hàng từ ${fCurrency(item?.minimumSpend)}`}
-        </Typography>
-        <Typography variant="subtitle2" color="grey.600" sx={{ pb: 1 }}>
-          {`Giảm tối đa ${fCurrency(item?.maximumDiscountValue)}`}
         </Typography>
         <Typography variant="subtitle2" color="grey.500">
           {`${fDate(item?.startTime, formatStr.myFormat.date)} - ${fDate(item?.endTime, formatStr.myFormat.date)}`}

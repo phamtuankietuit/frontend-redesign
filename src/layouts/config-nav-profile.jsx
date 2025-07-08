@@ -58,10 +58,10 @@ export const navData = [
             title: 'Địa chỉ',
             path: paths.account.address,
           },
-          {
-            title: 'Thông báo',
-            path: paths.account.notifications,
-          },
+          // {
+          //   title: 'Thông báo',
+          //   path: paths.account.notifications,
+          // },
           {
             title: 'Bảo mật',
             path: paths.account.security,

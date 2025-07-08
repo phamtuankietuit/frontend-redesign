@@ -4,7 +4,6 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import CardHeader from '@mui/material/CardHeader';
-import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import { useBoolean } from 'src/hooks/use-boolean';
 
@@ -17,15 +16,7 @@ import { ProductReviewNewForm } from '../product/product-review-new-form';
 
 // ----------------------------------------------------------------------
 
-export function OrderDetailsItems({
-  taxes,
-  shipping,
-  discount,
-  subtotal,
-  items = [],
-  total,
-  order,
-}) {
+export function OrderDetailsItems({ order }) {
   const renderTotal = (
     <Stack
       spacing={2}
@@ -112,17 +103,10 @@ export function OrderDetailsItems({
 
   return (
     <Card>
-      <CardHeader
-        title="Chi tiết đơn hàng"
-        // action={
-        //   <IconButton>
-        //     <Iconify icon="solar:pen-bold" />
-        //   </IconButton>
-        // }
-      />
+      <CardHeader title="Chi tiết đơn hàng" />
 
       <Scrollbar>
-        {items.map((item) => (
+        {order?.orderLines?.map((item) => (
           <Stack
             key={item.id}
             direction="row"

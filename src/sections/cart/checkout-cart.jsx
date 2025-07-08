@@ -25,9 +25,9 @@ import { CheckoutDiscount } from './checkout-discount';
 export function CheckoutCart() {
   const dispatch = useDispatch();
 
-  const { items, selectedRowIds } = useSelector(selectCart);
+  const { items, selectedRowIds, loading } = useSelector(selectCart);
 
-  const empty = !items.length;
+  const empty = !items.length && !loading;
 
   const handleContinue = useCallback(() => {
     dispatch(nextStep());

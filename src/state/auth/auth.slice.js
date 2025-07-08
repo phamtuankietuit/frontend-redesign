@@ -25,9 +25,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(signInAsync.rejected, () => {
-        toast.error('Vui lòng kiểm tra lại thông tin đăng nhập!');
-      })
+
       .addCase(getMeAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;

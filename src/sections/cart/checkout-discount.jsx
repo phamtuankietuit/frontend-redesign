@@ -1,5 +1,5 @@
 import { useBoolean } from 'src/hooks/use-boolean';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -19,8 +19,6 @@ export function CheckoutDiscount() {
   const { selectedRowIds, step, totalDiscounted, shippingDiscount } =
     useSelector(selectCart);
 
-  const value = step === 0 ? totalDiscounted : shippingDiscount;
-
   return (
     <>
       <Card sx={{ mb: 3 }}>
@@ -33,14 +31,27 @@ export function CheckoutDiscount() {
               variant="body2"
               sx={{ flexGrow: 1, color: 'text.secondary' }}
             >
-              {step === 0
-                ? `Khuyến mãi áp dụng`
-                : `Giám giá phí vận chuyển áp dụng`}
+              Khuyến mãi áp dụng
             </Typography>
             <Typography component="span" variant="subtitle2">
-              {value ? fCurrency(-value) : '-'}
+              {totalDiscounted ? fCurrency(-totalDiscounted) : '-'}
             </Typography>
           </Box>
+
+          {step === 2 && (
+            <Box display="flex">
+              <Typography
+                component="span"
+                variant="body2"
+                sx={{ flexGrow: 1, color: 'text.secondary' }}
+              >
+                Giảm giá vận chuyển
+              </Typography>
+              <Typography component="span" variant="subtitle2">
+                {shippingDiscount ? fCurrency(-shippingDiscount) : '-'}
+              </Typography>
+            </Box>
+          )}
 
           <Button
             fullWidth

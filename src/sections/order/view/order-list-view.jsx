@@ -155,42 +155,6 @@ export function OrderListView() {
               iconPosition="end"
               value={tab.value}
               label={tab.label}
-              // icon={
-              //   <Label
-              //     variant={
-              //       ((tab.value === 'all' ||
-              //         tab.value === filters.state.status) &&
-              //         'filled') ||
-              //       'soft'
-              //     }
-              //     color={
-              //       (tab.value === 'Delivered' && 'success') ||
-              //       (tab.value === 'WaitForConfirmPackageBranch' &&
-              //         'secondary') ||
-              //       (tab.value === 'Pending' && 'warning') ||
-              //       (tab.value === 'Cancelled' && 'error') ||
-              //       (tab.value === 'Processing' && 'warning') ||
-              //       (tab.value === 'Shipped' && 'primary') ||
-              //       (tab.value === 'Packaging' && 'info') ||
-              //       'default'
-              //     }
-              //   >
-              //     {[
-              //       'Pending',
-              //       'WaitForConfirmPackageBranch',
-              //       'Packaging',
-              //       'Processing',
-              //       'Shipped',
-              //       'Delivered',
-              //       'Received',
-              //       'Cancelled',
-              //       'Refunded',
-              //     ].includes(tab.value)
-              //       ? tableData.filter((user) => user.status === tab.value)
-              //           .length
-              //       : tableData.length}
-              //   </Label>
-              // }
             />
           ))}
         </Tabs>

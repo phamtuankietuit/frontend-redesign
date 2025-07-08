@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { LoadingButton } from '@mui/lab';
 import { Box, Button, Stack, Typography } from '@mui/material';
+import { selectCart } from 'src/state/cart/cart.slice';
 import { updateCartItemsAsync } from 'src/services/cart/cart.service';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { UPDATE_CART_ACTION_TYPE } from './constants';
 
 export function VariantsForm({ row, onClose }) {
+  const { selectedRowIds } = useSelector(selectCart);
+
   const dispatch = useDispatch();
 
   const loading = useBoolean(false);
@@ -57,11 +60,6 @@ export function VariantsForm({ row, onClose }) {
         }),
       );
 
-      console.log(
-        '🚀 ~ row?.productOptions?.every ~ selectedVariant:',
-        selectedVariant,
-      );
-
       if (matchingVariant) {
         const body = {
           actionType: UPDATE_CART_ACTION_TYPE.UPDATE_PRODUCT_VARIANT,
@@ -77,6 +75,13 @@ export function VariantsForm({ row, onClose }) {
         };
 
         await dispatch(updateCartItemsAsync(body)).unwrap();
+
+        const newBody = {
+          actionType: UPDATE_CART_ACTION_TYPE.SELECT_FOR_CHECKOUT,
+          selectedItemIds: selectedRowIds,
+        };
+
+        await dispatch(updateCartItemsAsync(newBody)).unwrap();
 
         toast.success('Cập nhật phân loại sản phẩm thành công!');
       }

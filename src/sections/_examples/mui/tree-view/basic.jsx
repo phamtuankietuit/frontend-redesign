@@ -28,7 +28,11 @@ const MUI_X_PRODUCTS = [
 
 export function BasicRichTree() {
   return (
-    <RichTreeView items={MUI_X_PRODUCTS} sx={{ overflowX: 'hidden', minHeight: 240, width: 1 }} />
+    <RichTreeView
+      items={MUI_X_PRODUCTS}
+      sx={{ overflowX: 'hidden', minHeight: 240, width: 1 }}
+      checkboxSelection
+    />
   );
 }
 

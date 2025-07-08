@@ -1,4 +1,5 @@
 import { z as zod } from 'zod';
+import { useRouter } from 'src/routes/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -14,11 +15,12 @@ import DialogContent from '@mui/material/DialogContent';
 
 import { toastMessage } from 'src/utils/constant';
 
-import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import { Form, Field } from 'src/components/hook-form';
 import { selectAuth } from 'src/state/auth/auth.slice';
 import { uploadImagesAsync } from 'src/services/file/file.service';
 import { ratingProductAsync } from 'src/services/rating/rating.service';
 import { toast } from 'sonner';
+import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -39,6 +41,8 @@ export function ProductReviewNewForm({
   const dispatch = useDispatch();
 
   const { user } = useSelector(selectAuth);
+
+  const router = useRouter();
 
   const defaultValues = {
     ratingValue: 0,
@@ -98,6 +102,8 @@ export function ProductReviewNewForm({
           body,
         }),
       ).unwrap();
+
+      router.push(paths.account.orders);
 
       toast.success('Đánh giá sản phẩm thành công!');
 

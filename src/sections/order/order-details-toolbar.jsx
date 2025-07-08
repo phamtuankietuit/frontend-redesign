@@ -1,6 +1,6 @@
+import { useDispatch } from 'react-redux';
+import { toast } from 'sonner';
 import Stack from '@mui/material/Stack';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -8,6 +8,10 @@ import { RouterLink } from 'src/routes/components';
 
 import { fDateTime, formatStr } from 'src/utils/format-time';
 
+import {
+  getOrderByIdAsync,
+  updateOrderStatusAsync,
+} from 'src/services/order/order.service';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -22,11 +26,55 @@ export function OrderDetailsToolbar({
   orderNumber,
   order,
 }) {
+  const dispatch = useDispatch();
+
   const loadingCancel = useBoolean(false);
-  const handleCancel = () => {};
+
+  const handleCancel = async () => {
+    try {
+      loadingCancel.onTrue();
+
+      await dispatch(
+        updateOrderStatusAsync({
+          id: order.id,
+          body: { status: 7, reason: '', notes: '' },
+        }),
+      ).unwrap();
+
+      await dispatch(getOrderByIdAsync(order?.id)).unwrap();
+
+      toast.success('Hủy đơn hàng thành công!');
+    } catch (error) {
+      console.error('Error canceling order:', error);
+      toast.error('Hủy đơn hàng thất bại');
+    } finally {
+      loadingCancel.onFalse();
+    }
+  };
 
   const loadingConfirm = useBoolean(false);
-  const handleConfirm = () => {};
+
+  const handleConfirm = async () => {
+    try {
+      loadingConfirm.onTrue();
+
+      await dispatch(
+        updateOrderStatusAsync({
+          id: order.id,
+          body: { status: 6, reason: '', notes: '' },
+        }),
+      ).unwrap();
+
+      await dispatch(getOrderByIdAsync(order?.id)).unwrap();
+
+      toast.success('Xác nhận đơn hàng thành công!');
+    } catch (error) {
+      console.error('Error confirm order:', error);
+      toast.error('Xác nhận đơn hàng thất bại');
+    } finally {
+      loadingConfirm.onFalse();
+    }
+  };
 
   return (
     <Stack

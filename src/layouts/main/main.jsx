@@ -1,7 +1,9 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 
 import { selectAuth } from 'src/state/auth/auth.slice';
+import { selectCart, setDiscountInfo } from 'src/state/cart/cart.slice';
+import { DiscountInfoDialog } from 'src/sections/cart/components/discount-info-dialog';
 import { ChatIcon } from 'src/sections/product/components/chat-icon';
 import { BackToTop } from 'src/components/animate';
 import { CartIcon } from 'src/sections/product/components/cart-icon';
@@ -10,6 +12,10 @@ import { layoutClasses } from '../classes';
 // ----------------------------------------------------------------------
 
 export function Main({ children, sx, ...other }) {
+  const dispatch = useDispatch();
+
+  const { discountInfo } = useSelector(selectCart);
+
   const { user } = useSelector(selectAuth);
 
   return (
@@ -36,6 +42,13 @@ export function Main({ children, sx, ...other }) {
       />
 
       {user && <ChatIcon />}
+
+      <DiscountInfoDialog
+        open={!!discountInfo}
+        onClose={() => {
+          dispatch(setDiscountInfo(null));
+        }}
+      />
 
       {children}
     </Box>

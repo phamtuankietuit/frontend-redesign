@@ -9,6 +9,22 @@ export const getPromotionsAsync = createAsyncThunk(
   }
 );
 
+export const getDiscountPromotionsAsync = createAsyncThunk(
+  'promotion/getDiscountPromotionsAsync',
+  async (body) => {
+    const response = await POST(`/discount-vouchers/list`, body);
+    return response.data;
+  }
+);
+
+export const getFreeShippingPromotionsAsync = createAsyncThunk(
+  'promotion/getFreeShippingPromotionsAsync',
+  async (body) => {
+    const response = await POST(`/discount-vouchers/list`, body);
+    return response.data;
+  }
+);
+
 export const getPromotionByIdAsync = createAsyncThunk(
   'promotion/getPromotionByIdAsync',
   async (id) => {

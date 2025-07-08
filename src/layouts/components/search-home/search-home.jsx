@@ -100,7 +100,7 @@ export function SearchHome() {
               <>
                 {loading ? <Iconify icon="svg-spinners:8-dots-rotate" /> : null}
                 {params.InputProps.endAdornment}
-                <Tooltip title="AI Search">
+                {/* <Tooltip title="AI Search">
                   <Switch
                     name="AI Search"
                     checked={mode === 'ai'}
@@ -108,7 +108,7 @@ export function SearchHome() {
                       dispatch(setMode(mode === 'ai' ? 'normal' : 'ai'));
                     }}
                   />
-                </Tooltip>
+                </Tooltip> */}
                 <Tooltip title="Tìm kiếm sản phẩm bằng hình ảnh">
                   <IconButton
                     name="Image Search"
